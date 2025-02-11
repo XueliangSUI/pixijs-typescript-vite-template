@@ -2,9 +2,9 @@ import { PixiApplication, IPixiApplicationOptions } from '../plugins/engine';
 import { ApplicationInterface, StageInterface, PanelInterface, TickerInterface } from '../entities/manager';
 
 export class App implements ApplicationInterface {
-    private _app: PixiApplication;
+    _app: PixiApplication;
     ticker?: TickerInterface;
-    stage?: StageInterface;
+    stage?: ApplicationInterface['stage'];
     panel: PanelInterface;
 
     constructor() {

@@ -10,6 +10,12 @@ export interface StageInterface {
      * @param children 
      */
     removeChild<T extends any[]>(...children: T): T[0];
+
+    /** 
+ * 
+ * @param children 
+ */
+    on<T extends any[]>(...children: T): T[0];
 }
 
 export interface TickerInterface {
