@@ -18,9 +18,10 @@ export class TestScene extends PixiContainer implements SceneInterface {
         // 屏幕宽高中的较小值，作为基准长度
         this.baseLength = Math.min(Manager.width, Manager.height) / 1000
         this.bg = new PixiContainer();
-        this.player = new PlayerObject(this.baseLength);
+        this.player = new PlayerObject(this, this.baseLength);
         this.bloodBar = new BloodBar(this.baseLength)
-        this.app.stage?.addChild(this.bloodBar.frameShape);
+        this.addChild(this.bg);
+        this.addChild(this.bloodBar.frameShape);
         this._constructor(app).then(() => {
             console.log('TestScene constructor done');
         });
@@ -31,10 +32,6 @@ export class TestScene extends PixiContainer implements SceneInterface {
         this.interactive = true;
         this.position.x = 0;
         this.position.y = 0;
-
-        const parentWidth = Manager.width;
-        const parentHeight = Manager.height;
-
 
 
         // 一个很大的，灰色背景的container
@@ -65,13 +62,12 @@ export class TestScene extends PixiContainer implements SceneInterface {
             console.log('bg pointerdown');
         });
         this.bg.addChild(this.player.shape);
-        // 将player居中
-        this.player.shape.position.x = parentWidth / 2;
-        this.player.shape.position.y = parentHeight / 2;
-        this.addChild(this.bg);
+
+
         generateEmemies(this);
         backgroundMove(app, this.bg, this.player, this.baseLength);
         enemiesMove(this)
+        collisionDetections(this);
 
 
     }
@@ -84,6 +80,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
 
     }
 }
+
 // 血条
 class BloodBar {
     frameShape: PixiGraphics;
@@ -96,15 +93,19 @@ class BloodBar {
         this.frameShape = new PixiGraphics();
         this.frameShape.setStrokeStyle(0x000000);
 
-        this.frameShape.rect(0, 0, 100 * baseLength, 10 * baseLength);
-        this.frameShape.fill(0x00FF00);
-        this.frameShape.position.x = 0;
-        this.frameShape.position.y = 0;
+        this.frameShape.rect(0, 0, 60 * baseLength, 8 * baseLength);
+        this.frameShape.fill(0xaaaaaa);
+        // 屏幕居中偏下一点
+        this.frameShape.position.x = Manager.width / 2
+        this.frameShape.position.y = Manager.height / 2 + 10 * baseLength
+        // 相对自身居中
+        this.frameShape.pivot.set(this.frameShape.width / 2, this.frameShape.height / 2)
+
         this.bloodShape = new PixiGraphics();
-        this.bloodShape.rect(0, 0, 100 * baseLength, 10 * baseLength);
+        this.bloodShape.rect(0, 0, 56 * baseLength, 4 * baseLength);
         this.bloodShape.fill(0x00FF00);
-        this.bloodShape.position.x = 0;
-        this.bloodShape.position.y = 0;
+        this.bloodShape.position.x = 2 * baseLength;
+        this.bloodShape.position.y = 2 * baseLength;
         this.frameShape.addChild(this.bloodShape);
     }
 
@@ -115,23 +116,39 @@ class BloodBar {
 
 class PlayerObject {
     speed: number;
+    maxHp: number;
     hp: number;
     shape: PixiSprite | PixiGraphics;
-    constructor(baseLength: number) {
+    _this: TestScene
+    constructor(_this: TestScene, baseLength: number) {
+        this._this = _this
         this.speed = 5 * baseLength;
+        this.maxHp = 100;
         this.hp = 100;
         // shape是一个黄色的圆形
         const graphics = new PixiGraphics();
         const radius = 10 * baseLength;
         graphics.circle(0, 0, radius);
         graphics.fill(0xFFFF00);
-        graphics.pivot.set(radius, radius);
+        graphics.pivot.set(0, radius);
         this.shape = graphics
+        // 将player居中
+        this.shape.position.x = Manager.width / 2;
+        this.shape.position.y = Manager.height / 2;
 
 
         // this.shape.width = 50;
         // this.shape.height = 50;
 
+    }
+
+    setHp(hp: number) {
+        this.hp = hp
+        this._this.bloodBar.update(this.hp, this.maxHp)
+    }
+
+    minusHp(hp: number) {
+        this.setHp(this.hp - hp)
     }
 }
 
@@ -140,9 +157,15 @@ class EnemyObject {
     speed!: number;
     hp!: number;
     maxHp!: number;
+    atk: number = 0;
     x!: number;
     y!: number;
     shape!: PixiSprite | PixiGraphics;
+    _this: TestScene
+
+    constructor(_this: TestScene) {
+        this._this = _this
+    }
 
     init(params: { shape: PixiSprite | PixiGraphics, speed: number, hp: number, maxHp: number }) {
         const { speed, hp, maxHp } = params;
@@ -150,8 +173,6 @@ class EnemyObject {
         this.hp = hp;
         this.maxHp = maxHp;
         this.shape = params.shape;
-
-
     }
 
     add(container: PixiContainer) {
@@ -166,6 +187,8 @@ class EnemyObject {
             if (this.shape.parent) {
                 this.shape.parent.removeChild(this.shape);
             }
+            // 从enemiesList中移除
+            this._this.enemiesList.splice(this._this.enemiesList.indexOf(this), 1);
             // 销毁 shape
             this.shape.destroy({ children: true, texture: true });
             // 清空相关属性
@@ -180,10 +203,11 @@ class EnemyObject {
 }
 
 class TestEnemyObject extends EnemyObject {
-    constructor() {
-        super();
+    constructor(_this: TestScene) {
+        super(_this);
 
         this.hp = 100;
+        this.atk = 10
         // 一个红色的小圆形，中心在自己的中心
         const graphics = new PixiGraphics();
         const radius = 10 * this.baseLength;
@@ -245,7 +269,7 @@ const enemiesMove = (_this: TestScene) => {
 const generateEmemies = (_this: TestScene) => {
     const enemyInitDistance = Math.max(Manager.width, Manager.height) / 2 + 100 * _this.baseLength;
     const timer = setInterval(() => {
-        const enemy = new TestEnemyObject();
+        const enemy = new TestEnemyObject(_this);
         _this.enemiesList.push(enemy);
         // 以enemyInitDistance为半径，以player为中心生成敌人
         const angle = Math.random() * Math.PI * 2;
@@ -255,4 +279,27 @@ const generateEmemies = (_this: TestScene) => {
         _this.bg.addChild(enemy.shape);
 
     }, 1000);
+}
+
+const collisionDetections = (_this: TestScene) => {
+    _this.app.ticker!.add((time: any) => {
+        _this.enemiesList.forEach((enemy) => {
+            if (enemy.shape) {
+                if (collisionDetectionCircle(_this.player, enemy)) {
+                    enemy.destroy();
+                    _this.player.minusHp(enemy.atk);
+                }
+            }
+        })
+    })
+
+}
+
+// 圆形碰撞检测
+const collisionDetectionCircle = (obj1: PlayerObject | EnemyObject, obj2: PlayerObject | EnemyObject) => {
+    if ((obj1.shape.position.x - obj2.shape.position.x) ** 2 + (obj1.shape.position.y - obj2.shape.position.y) ** 2 <= (obj1.shape.width / 2 + obj2.shape.width / 2) ** 2) {
+        return true;
+    } else {
+        return false;
+    }
 }
