@@ -15,6 +15,7 @@
   "dependencies": {
     "@pixi/gif": "^3.0.1",
     "@pixi/sound": "^6.0.1",
+    "gsap": "^3.12.7",
     "pixi.js": "^8.6.2"
   }
 }

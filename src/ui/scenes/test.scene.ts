@@ -3,6 +3,7 @@ import { Manager, SceneInterface } from "../../entities/manager";
 import { Assets } from "pixi.js";
 import { Loader } from "pixi.js";
 import { App } from '../../app';
+import gsap from "gsap";
 export class TestScene extends PixiContainer implements SceneInterface {
     baseLength: number;
     // gameBgImg: PixiSprite;
@@ -11,6 +12,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
     player: PlayerObject;
     bloodBar: BloodBar;
     app: App;
+    weapenns: WeapenObject[] = []
 
     constructor(app: App) {
         super();
@@ -149,6 +151,20 @@ class PlayerObject {
 
     minusHp(hp: number) {
         this.setHp(this.hp - hp)
+        this.blink()
+    }
+
+    blink() {
+        // 创建一个闪烁动画
+        gsap.to(this.shape, {
+            alpha: 0.3, // 透明度变为 0
+            duration: 0.1, // 动画持续时间 0.1 秒
+            repeat: 3, // 重复一次
+            yoyo: true, // 动画往返
+            onComplete: () => {
+                this.shape.alpha = 1; // 确保动画结束后透明度恢复为 1
+            }
+        });
     }
 }
 
@@ -222,6 +238,27 @@ class TestEnemyObject extends EnemyObject {
 
 
 
+}
+
+class WeapenObject {
+   
+    frequency: number = 0; // 频率每秒发射次数
+    speed: number = 0;
+    range: number = 0;
+    size: number = 0;
+    damage: number = 0;
+    shape!: PixiSprite | PixiGraphics;
+
+    constructor(scene: TestScene) { }
+}
+
+class BulletWeapen extends WeapenObject {
+    constructor(scene: TestScene) {
+        super(scene);
+        this.frequency = 0.5
+        this.speed = 10 * scene.baseLength
+
+    }
 }
 
 const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseLength: number) => {
