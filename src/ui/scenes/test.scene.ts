@@ -1,6 +1,6 @@
 import { PixiContainer, PixiSprite, PixiGraphics, PixiSoundLibrary, PixiText } from "../../plugins/engine";
 import { Manager, SceneInterface } from "../../entities/manager";
-import { Assets } from "pixi.js";
+import { Assets, Graphics } from "pixi.js";
 import { Loader } from "pixi.js";
 import { App } from '../../app';
 import gsap from "gsap";
@@ -241,7 +241,7 @@ class TestEnemyObject extends EnemyObject {
 }
 
 class WeapenObject {
-   
+
     frequency: number = 0; // 频率每秒发射次数
     speed: number = 0;
     range: number = 0;
@@ -253,12 +253,29 @@ class WeapenObject {
 }
 
 class BulletWeapen extends WeapenObject {
+    level = 0
+    scene: TestScene
     constructor(scene: TestScene) {
         super(scene);
+        this.scene = scene
         this.frequency = 0.5
         this.speed = 10 * scene.baseLength
 
+
     }
+
+    upgrade(up = 1) {
+        this.level += up
+    }
+
+    attack() {
+        const BulletWeapenList = []
+        // 白色小圆球
+        const shape = new Graphics();
+        shape.circle(0, 0, 2 * this.scene.baseLength);
+        shape.fill(0xFFFFFF);
+    }
+
 }
 
 const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseLength: number) => {
@@ -340,3 +357,9 @@ const collisionDetectionCircle = (obj1: PlayerObject | EnemyObject, obj2: Player
         return false;
     }
 }
+
+const findClosestEnemy = (_this: TestScene) => {
+
+}
+
+const findClosestEnemy   
