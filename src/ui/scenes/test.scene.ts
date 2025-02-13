@@ -260,8 +260,8 @@ class BulletWeapen extends WeapenObject {
         this.scene = scene
         this.frequency = 0.5
         this.speed = 10 * scene.baseLength
-
-
+        this.range = 100 * scene.baseLength
+        this.size = 2 * scene.baseLength
     }
 
     upgrade(up = 1) {
@@ -269,13 +269,29 @@ class BulletWeapen extends WeapenObject {
     }
 
     attack() {
+        setInterval(() => {
+            const targetEnemy = findClosestEnemy(this.scene, this.range)
+            if (!targetEnemy) return
+
+        }, 1000 * this.frequency)
         const BulletWeapenList = []
         // 白色小圆球
+
+    }
+}
+
+class BulletWeapenItem {
+    scene: TestScene
+    constructor(scene: TestScene) {
+        this.scene = scene
         const shape = new Graphics();
         shape.circle(0, 0, 2 * this.scene.baseLength);
         shape.fill(0xFFFFFF);
     }
 
+    destroy() {
+        
+    }
 }
 
 const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseLength: number) => {
@@ -342,6 +358,8 @@ const collisionDetections = (_this: TestScene) => {
                 if (collisionDetectionCircle(_this.player, enemy)) {
                     enemy.destroy();
                     _this.player.minusHp(enemy.atk);
+                    // 输出所有_this.bg的子元素
+                    console.log(_this.bg.children);
                 }
             }
         })
@@ -358,8 +376,22 @@ const collisionDetectionCircle = (obj1: PlayerObject | EnemyObject, obj2: Player
     }
 }
 
-const findClosestEnemy = (_this: TestScene) => {
-
+const findClosestEnemy = (_this: TestScene, distanceLimit?: number) => {
+    let closestEnemy: EnemyObject | null = null;
+    let minDistance = Infinity;
+    _this.enemiesList.forEach((enemy) => {
+        if (enemy.shape) {
+            const distance = Math.sqrt((enemy.shape.position.x - _this.player.shape.position.x) ** 2 + (enemy.shape.position.y - _this.player.shape.position.y) ** 2);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestEnemy = enemy;
+            }
+        }
+    })
+    if (distanceLimit && minDistance > distanceLimit) {
+        return null;
+    } else {
+        return closestEnemy
+    }
 }
 
-const findClosestEnemy   
