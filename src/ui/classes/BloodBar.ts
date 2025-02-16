@@ -1,5 +1,5 @@
-import { Manager } from "src/entities/manager";
-import { PixiGraphics } from "src/plugins/engine";
+import { Manager } from "@src/entities/manager";
+import { PixiGraphics } from "@src/plugins/engine";
 
 // 血条
 export class BloodBar {

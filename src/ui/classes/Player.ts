@@ -2,15 +2,18 @@ import { Manager } from "../../entities/manager";
 import { PixiGraphics, PixiSprite } from "../../plugins/engine";
 import gsap from "gsap";
 import { TestScene } from "@ui/scenes/test.scene";
+import { WeapenObject } from "./Weapen";
+import { WeapenBullet } from "./WeapenBullet";
 
 export class PlayerObject {
     speed: number;
     maxHp: number;
     hp: number;
     shape: PixiSprite | PixiGraphics;
-    _this: TestScene
-    constructor(_this: TestScene, baseLength: number) {
-        this._this = _this
+    weapens: WeapenObject[] = [];
+    scene: TestScene
+    constructor(scene: TestScene, baseLength: number) {
+        this.scene = scene
         this.speed = 5 * baseLength;
         this.maxHp = 100;
         this.hp = 100;
@@ -25,6 +28,8 @@ export class PlayerObject {
         this.shape.position.x = Manager.width / 2;
         this.shape.position.y = Manager.height / 2;
 
+        const weapenBullet = new WeapenBullet(this.scene)
+        this.addWeapen(weapenBullet)
 
         // this.shape.width = 50;
         // this.shape.height = 50;
@@ -33,7 +38,7 @@ export class PlayerObject {
 
     setHp(hp: number) {
         this.hp = hp
-        this._this.bloodBar.update(this.hp, this.maxHp)
+        this.scene.bloodBar.update(this.hp, this.maxHp)
     }
 
     minusHp(hp: number) {
@@ -52,5 +57,11 @@ export class PlayerObject {
                 this.shape.alpha = 1; // 确保动画结束后透明度恢复为 1
             }
         });
+    }
+
+    addWeapen(weapen: WeapenObject) {
+        this.weapens.push(weapen)
+        weapen.attack()
+
     }
 }

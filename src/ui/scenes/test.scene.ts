@@ -6,6 +6,12 @@ import { App } from '../../app';
 import gsap from "gsap";
 import { PlayerObject } from "@ui/classes/Player"
 import { BloodBar } from "@ui/classes/BloodBar"
+import { EnemyObject } from "@ui/classes/Enemy"
+import { TestEnemyObject } from "@ui/classes/TestEnemyObject"
+import { WeapenObject } from "@ui/classes/Weapen"
+import { WeapenBullet } from "@ui/classes/WeapenBullet"
+
+
 export class TestScene extends PixiContainer implements SceneInterface {
     baseLength: number;
     // gameBgImg: PixiSprite;
@@ -15,6 +21,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
     bloodBar: BloodBar;
     app: App;
     weapenns: WeapenObject[] = []
+    enemyId: number = 0 //给敌人生成自增id
 
     constructor(app: App) {
         super();
@@ -71,9 +78,13 @@ export class TestScene extends PixiContainer implements SceneInterface {
         generateEmemies(this);
         backgroundMove(app, this.bg, this.player, this.baseLength);
         enemiesMove(this)
-        collisionDetections(this);
+        this.collisionDetections(this);
 
 
+    }
+
+    unitLength(length: number) {
+        return length * this.baseLength
     }
 
     update(framesPassed: number): void {
@@ -83,137 +94,89 @@ export class TestScene extends PixiContainer implements SceneInterface {
     resize(parentWidth: number, parentHeight: number): void {
 
     }
-}
 
-
-
-
-
-class EnemyObject {
-    baseLength = Math.min(Manager.width, Manager.height) / 1000
-    speed!: number;
-    hp!: number;
-    maxHp!: number;
-    atk: number = 0;
-    x!: number;
-    y!: number;
-    shape!: PixiSprite | PixiGraphics;
-    _this: TestScene
-
-    constructor(_this: TestScene) {
-        this._this = _this
+    newEnemyId() {
+        this.enemyId += 1;
+        return this.enemyId;
     }
 
-    init(params: { shape: PixiSprite | PixiGraphics, speed: number, hp: number, maxHp: number }) {
-        const { speed, hp, maxHp } = params;
-        this.speed = speed * this.baseLength;
-        this.hp = hp;
-        this.maxHp = maxHp;
-        this.shape = params.shape;
-    }
-
-    add(container: PixiContainer) {
-        if (this.shape) {
-            container.addChild(this.shape);
-        }
-    }
-
-    destroy() {
-        if (this.shape) {
-            // 从父容器中移除 shape
-            if (this.shape.parent) {
-                this.shape.parent.removeChild(this.shape);
+    findClosestEnemy = (distanceLimit?: number) => {
+        let closestEnemy: EnemyObject | null = null;
+        let minDistance = Infinity;
+        this.enemiesList.forEach((enemy) => {
+            if (enemy.shape) {
+                const distance = Math.sqrt((enemy.shape.position.x - this.player.shape.position.x) ** 2 + (enemy.shape.position.y - this.player.shape.position.y) ** 2);
+ 
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestEnemy = enemy;
+                    if(closestEnemy) {
+                    }
+                }
             }
-            // 从enemiesList中移除
-            this._this.enemiesList.splice(this._this.enemiesList.indexOf(this), 1);
-            // 销毁 shape
-            this.shape.destroy({ children: true, texture: true });
-            // 清空相关属性
-            this.speed = 0;
-            this.hp = 0;
-            this.maxHp = 0;
-            this.x = 0;
-            this.y = 0;
-            this.shape = null as any;
+        })
+        if (distanceLimit && minDistance > distanceLimit) {
+            console.log("minDistance: ", minDistance);
+            console.log("distanceLimit: ", distanceLimit);
+            return null;
+        } else {
+            return closestEnemy
         }
     }
+
+    collisionDetections = (scene: TestScene) => {
+        scene.app.ticker!.add((time: any) => {
+            scene.enemiesList.forEach((enemy) => {
+                if (enemy.shape) {
+                    if (this.collisionDetectionCircle(scene.player, enemy)) {
+                        enemy.destroy();
+                        scene.player.minusHp(enemy.atk);
+                        // 输出所有scene.bg的子元素
+                        console.log(scene.bg.children);
+                    }
+                }
+            })
+        })
+
+    }
+
+    // 圆形碰撞检测
+    collisionDetectionCircle = (obj1: PlayerObject | EnemyObject | any, obj2: PlayerObject | EnemyObject | any) => {
+        const distanceX = obj1.shape.position.x - obj2.shape.position.x;
+        const distanceY = obj1.shape.position.y - obj2.shape.position.y;
+        const radiusSum = obj1.shape.width / 2 + obj2.shape.width / 2;
+
+        return distanceX ** 2 + distanceY ** 2 <= radiusSum ** 2;
+    }
+
+    collisionDetectionCirclePosition = (positionObj: { x1: number, y1: number, x2: number, y2: number, r1: number, r2: number }) => {
+        return (positionObj.x1 - positionObj.x2) ** 2 + (positionObj.y1 - positionObj.y2) ** 2 <= (positionObj.r1 + positionObj.r2) ** 2
+    }
+
+    // 检测子弹碰到任何敌人
+    enemiesCollidedByBullet = (x: number, y: number, radius: number): EnemyObject[] => {
+        const enemies = this.enemiesList.filter((enemy: EnemyObject) => {
+            if (!enemy.shape) return false
+            return this.collisionDetectionCirclePosition({ x1: x, y1: y, x2: enemy.shape.position.x, y2: enemy.shape.position.y, r1: radius, r2: enemy.shape.width / 2 })
+        })
+        return enemies
+    }
+
 }
 
-class TestEnemyObject extends EnemyObject {
-    constructor(_this: TestScene) {
-        super(_this);
-
-        this.hp = 100;
-        this.atk = 10
-        // 一个红色的小圆形，中心在自己的中心
-        const graphics = new PixiGraphics();
-        const radius = 10 * this.baseLength;
-        graphics.circle(0, 0, radius);
-        graphics.fill(0xFF0000);
-        graphics.pivot.set(radius, radius);
-
-
-        graphics.pivot.set(radius, radius);
-        this.init({ shape: graphics, speed: 3, hp: 100, maxHp: 100 });
-    }
 
 
 
-}
 
-class WeapenObject {
 
-    frequency: number = 0; // 频率每秒发射次数
-    speed: number = 0;
-    range: number = 0;
-    size: number = 0;
-    damage: number = 0;
-    shape!: PixiSprite | PixiGraphics;
 
-    constructor(scene: TestScene) { }
-}
 
-class BulletWeapen extends WeapenObject {
-    level = 0
-    scene: TestScene
-    constructor(scene: TestScene) {
-        super(scene);
-        this.scene = scene
-        this.frequency = 0.5
-        this.speed = 10 * scene.baseLength
-        this.range = 100 * scene.baseLength
-        this.size = 2 * scene.baseLength
-    }
 
-    upgrade(up = 1) {
-        this.level += up
-    }
 
-    attack() {
-        setInterval(() => {
-            const targetEnemy = findClosestEnemy(this.scene, this.range)
-            if (!targetEnemy) return
 
-        }, 1000 * this.frequency)
-        const BulletWeapenList = []
-        // 白色小圆球
 
-    }
-}
 
-class BulletWeapenItem {
-    scene: TestScene
-    constructor(scene: TestScene) {
-        this.scene = scene
-        const shape = new Graphics();
-        shape.circle(0, 0, 2 * this.scene.baseLength);
-        shape.fill(0xFFFFFF);
-    }
 
-    destroy() {
-
-    }
-}
 
 const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseLength: number) => {
     let mouseX = 0;
@@ -241,12 +204,12 @@ const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseL
 
 }
 
-const enemiesMove = (_this: TestScene) => {
-    _this.app.ticker!.add((time: any) => {
-        _this.enemiesList.forEach((enemy) => {
+const enemiesMove = (scene: TestScene) => {
+    scene.app.ticker!.add((time: any) => {
+        scene.enemiesList.forEach((enemy) => {
             if (enemy.shape) {
-                const deltaX = _this.player.shape.position.x - enemy.shape.position.x;
-                const deltaY = _this.player.shape.position.y - enemy.shape.position.y;
+                const deltaX = scene.player.shape.position.x - enemy.shape.position.x;
+                const deltaY = scene.player.shape.position.y - enemy.shape.position.y;
                 const angle = Math.atan2(deltaY, deltaX);
                 const speedX = Math.cos(angle) * enemy.speed * time.deltaTime;
                 const speedY = Math.sin(angle) * enemy.speed * time.deltaTime;
@@ -257,62 +220,20 @@ const enemiesMove = (_this: TestScene) => {
     })
 }
 
-const generateEmemies = (_this: TestScene) => {
-    const enemyInitDistance = Math.max(Manager.width, Manager.height) / 2 + 100 * _this.baseLength;
+const generateEmemies = (scene: TestScene) => {
+    const enemyInitDistance = Math.max(Manager.width, Manager.height) / 2 + 100 * scene.baseLength;
     const timer = setInterval(() => {
-        const enemy = new TestEnemyObject(_this);
-        _this.enemiesList.push(enemy);
+        const enemy = new TestEnemyObject(scene);
+        scene.enemiesList.push(enemy);
         // 以enemyInitDistance为半径，以player为中心生成敌人
         const angle = Math.random() * Math.PI * 2;
-        enemy.shape.position.x = _this.player.shape.position.x + Math.cos(angle) * enemyInitDistance;
-        enemy.shape.position.y = _this.player.shape.position.y + Math.sin(angle) * enemyInitDistance;
+        enemy.shape.position.x = scene.player.shape.position.x + Math.cos(angle) * enemyInitDistance;
+        enemy.shape.position.y = scene.player.shape.position.y + Math.sin(angle) * enemyInitDistance;
 
-        _this.bg.addChild(enemy.shape);
+        scene.bg.addChild(enemy.shape);
 
     }, 1000);
 }
 
-const collisionDetections = (_this: TestScene) => {
-    _this.app.ticker!.add((time: any) => {
-        _this.enemiesList.forEach((enemy) => {
-            if (enemy.shape) {
-                if (collisionDetectionCircle(_this.player, enemy)) {
-                    enemy.destroy();
-                    _this.player.minusHp(enemy.atk);
-                    // 输出所有_this.bg的子元素
-                    console.log(_this.bg.children);
-                }
-            }
-        })
-    })
 
-}
-
-// 圆形碰撞检测
-const collisionDetectionCircle = (obj1: PlayerObject | EnemyObject, obj2: PlayerObject | EnemyObject) => {
-    if ((obj1.shape.position.x - obj2.shape.position.x) ** 2 + (obj1.shape.position.y - obj2.shape.position.y) ** 2 <= (obj1.shape.width / 2 + obj2.shape.width / 2) ** 2) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-const findClosestEnemy = (_this: TestScene, distanceLimit?: number) => {
-    let closestEnemy: EnemyObject | null = null;
-    let minDistance = Infinity;
-    _this.enemiesList.forEach((enemy) => {
-        if (enemy.shape) {
-            const distance = Math.sqrt((enemy.shape.position.x - _this.player.shape.position.x) ** 2 + (enemy.shape.position.y - _this.player.shape.position.y) ** 2);
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestEnemy = enemy;
-            }
-        }
-    })
-    if (distanceLimit && minDistance > distanceLimit) {
-        return null;
-    } else {
-        return closestEnemy
-    }
-}
 

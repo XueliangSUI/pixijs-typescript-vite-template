@@ -25,6 +25,13 @@ export interface TickerInterface {
      * @param context 
      */
     add(fn: (framesPassed: any) => void, context?: any): TickerInterface
+
+    /** remove update function from the ticker
+     * 
+     * @param fn 
+     * @param context 
+     */
+    remove(fn: (framesPassed: any) => void, context?: any): TickerInterface
 }
 
 export type ResizeCallback = () => void;
