@@ -2,36 +2,58 @@ import { TestScene } from "@ui/scenes/test.scene";
 import { WeapenBullet } from "./WeapenBullet";
 import { Graphics, PI_2 } from "pixi.js";
 import { EnemyObject } from "./Enemy";
+import { PixiSprite, PixiTexture } from "@src/plugins/engine";
+import { WeapenObject } from "./Weapen";
 
-export class WeapenBulletItem extends WeapenBullet {
+export interface IWeapenBulletItem {
     scene: TestScene
-    // 角度
-    angle: number
+    size: number
+    targetEnemy: EnemyObject
+    speed: number
+    texture: PixiTexture
+    range: number
+    life: number
+    damage: number
+}
+
+export class WeapenBulletItem {
+    scene: TestScene
+    angle: number // 角度
     size: number //半径
-    shape: Graphics
+    shape: PixiSprite
+    speed: number
+    texture: PixiTexture
+    range: number
+    life: number
+    damage: number
     x1: number
     y1: number
     r1: number
     x2: number
     y2: number
     r2: number
-    constructor(scene: TestScene, enemy: EnemyObject,) {
-        super(scene);
+    constructor(props: IWeapenBulletItem) {
+        const { scene, targetEnemy, speed, texture, size, range, life, damage } = props
+        this.texture = texture
+        this.speed = speed
         this.scene = scene
-        this.size = scene.unitLength(8)
-        this.shape = new Graphics();
-        this.shape.circle(0, 0, this.size);
-        // 黄色圆球，白色边框
-        // this.shape.setStrokeStyle(2);
-        this.shape.lineStyle(2, 0xFFFFFF);
-        this.shape.fill(0xFFFF00);
+        this.size = size
+        this.range = range
+        this.life = life
+        this.damage = damage
+
+        this.shape = new PixiSprite(this.texture)
+        this.shape.width = this.size * 2
+        this.shape.height = this.size * 2
+        this.shape.anchor.set(0.5);
+
 
         this.x1 = this.scene.player.shape.position.x
         this.y1 = this.scene.player.shape.position.y
         this.r1 = this.size
-        this.x2 = enemy.shape.position.x
-        this.y2 = enemy.shape.position.y
-        this.r2 = enemy.shape.width / 2
+        this.x2 = targetEnemy.shape.position.x
+        this.y2 = targetEnemy.shape.position.y
+        this.r2 = targetEnemy.shape.width / 2
 
         this.angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
 
@@ -54,8 +76,8 @@ export class WeapenBulletItem extends WeapenBullet {
 
         // 对于所有击中的敌人，按情况减血
         const collidedEnemies = this.scene.enemiesCollidedByBullet(x, this.shape.position.y, this.size)
-        collidedEnemies.forEach((enemy) => {
-            this.collideEnemy(this, enemy)
+        collidedEnemies.forEach((targetEnemy) => {
+            WeapenObject.collideEnemy(this, targetEnemy)
         })
         //   如果超出范围
         const bulletMoveDistance = Math.sqrt((x - this.x1) ** 2 + (y - this.y1) ** 2);

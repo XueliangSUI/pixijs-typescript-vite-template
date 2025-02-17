@@ -17,7 +17,7 @@ export class BloodBar {
         this.frameShape.fill(0xaaaaaa);
         // 屏幕居中偏下一点
         this.frameShape.position.x = Manager.width / 2
-        this.frameShape.position.y = Manager.height / 2 + 10 * baseLength
+        this.frameShape.position.y = Manager.height / 2 + 20 * baseLength
         // 相对自身居中
         this.frameShape.pivot.set(this.frameShape.width / 2, this.frameShape.height / 2)
 

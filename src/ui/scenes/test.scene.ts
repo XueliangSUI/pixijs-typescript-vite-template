@@ -54,7 +54,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
         // const imageUrl = 'images/game-bg-scene-1.png'; // 替换为实际的图片URL
         const imageUrl = 'images/game-bg-scene-2.png'; // 替换为实际的图片URL
         const bgTexture = await Assets.load(imageUrl)
-        const squareSize = 1100 * this.baseLength
+        const squareSize = this.unitLength(1100)
         for (let row = 0; row < 100; row++) {
             for (let col = 0; col < 100; col++) {
                 const sprite = new PixiSprite(bgTexture);
@@ -100,17 +100,17 @@ export class TestScene extends PixiContainer implements SceneInterface {
         return this.enemyId;
     }
 
-    findClosestEnemy = (distanceLimit?: number) => {
+    findClosestEnemy = (distanceLimit?: number): EnemyObject | null => {
         let closestEnemy: EnemyObject | null = null;
         let minDistance = Infinity;
         this.enemiesList.forEach((enemy) => {
             if (enemy.shape) {
                 const distance = Math.sqrt((enemy.shape.position.x - this.player.shape.position.x) ** 2 + (enemy.shape.position.y - this.player.shape.position.y) ** 2);
- 
+
                 if (distance < minDistance) {
                     minDistance = distance;
                     closestEnemy = enemy;
-                    if(closestEnemy) {
+                    if (closestEnemy) {
                     }
                 }
             }

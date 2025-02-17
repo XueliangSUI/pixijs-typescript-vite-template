@@ -22,7 +22,7 @@ export class PlayerObject {
         const radius = 10 * baseLength;
         graphics.circle(0, 0, radius);
         graphics.fill(0xFFFF00);
-        graphics.pivot.set(0, radius);
+        graphics.pivot.set(0.5,0.5);
         this.shape = graphics
         // 将player居中
         this.shape.position.x = Manager.width / 2;

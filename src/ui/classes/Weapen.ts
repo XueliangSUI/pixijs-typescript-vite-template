@@ -2,6 +2,12 @@ import { PixiGraphics, PixiSprite } from "src/plugins/engine";
 import { EnemyObject } from "./Enemy";
 import { TestScene } from "@ui/scenes/test.scene";
 
+export interface IWeaponItem {
+    life: number
+    destroy: Function
+    damage: number
+}
+
 export class WeapenObject {
 
     frequency: number = 0; // 频率每秒发射次数
@@ -18,14 +24,14 @@ export class WeapenObject {
 
 
     // 碰撞敌人
-    collideEnemy(weapenItem: WeapenObject, enemy: EnemyObject) {
+    static collideEnemy(weapenItem: IWeaponItem, enemy: EnemyObject) {
         // 子弹是否继续存在
         weapenItem.life--;
         if (weapenItem.life <= 0) {
             weapenItem.destroy()
         }
         // 敌人是否销毁
-       enemy.underAttack(weapenItem.damage)
+        enemy.underAttack(weapenItem.damage)
     }
     attack() { }
 
