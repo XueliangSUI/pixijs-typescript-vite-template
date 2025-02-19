@@ -1,6 +1,9 @@
 import { TestScene } from "@ui/scenes/test.scene";
 import { Manager } from "@src/entities/manager";
 import { PixiContainer, PixiGraphics, PixiSprite } from "@src/plugins/engine";
+import { IWeaponItem } from "./WeapenBulletItem";
+import gsap from "gsap";
+import { AnimatedSprite } from "pixi.js";
 
 export class EnemyObject {
     baseLength = Math.min(Manager.width, Manager.height) / 1000
@@ -11,7 +14,8 @@ export class EnemyObject {
     atk: number = 0;
     x!: number;
     y!: number;
-    shape!: PixiSprite | PixiGraphics;
+    shape: PixiSprite | PixiGraphics = new PixiGraphics();
+    knockbackResistance: number = 0;
     scene: TestScene
 
     constructor(scene: TestScene) {
@@ -19,7 +23,7 @@ export class EnemyObject {
         this.id = scene.newEnemyId();
     }
 
-    init(params: { shape: PixiSprite | PixiGraphics, speed: number, hp: number, maxHp: number }) {
+    init(params: { shape: PixiSprite | PixiGraphics | AnimatedSprite, speed: number, hp: number, maxHp: number }) {
         const { speed, hp, maxHp } = params;
         this.speed = speed * this.baseLength;
         this.hp = hp;
@@ -27,22 +31,33 @@ export class EnemyObject {
         this.shape = params.shape;
     }
 
-    add(container: PixiContainer) {
-        if (this.shape) {
-            container.addChild(this.shape);
-        }
-    }
+    // add(container: PixiContainer) {
+    //     if (this.shape) {
+    //         console.log('add enemy', this.shape)
+    //         container.addChild(this.shape);
+    //     }
+    // }
 
     destroy() {
         if (this.shape) {
             // 从父容器中移除 shape
-            if (this.shape.parent) {
-                this.shape.parent.removeChild(this.shape);
-            }
+
             // 从enemiesList中移除
             this.scene.enemiesList.splice(this.scene.enemiesList.indexOf(this), 1);
-            // 销毁 shape
-            this.shape.destroy({ children: true, texture: true });
+            // 1秒的淡出效果
+            gsap.to(this.shape, {
+                alpha: 0,
+                duration: 0.2,
+                onComplete: () => {
+                    if (this.shape) {
+                        if (this.shape instanceof AnimatedSprite) {
+                            this.shape.stop()
+                        }
+                        // 销毁 shape
+                        this.shape.destroy({ children: true, texture: true });
+                    }
+                }
+            })
             // 清空相关属性
             this.speed = 0;
             this.hp = 0;
@@ -53,12 +68,19 @@ export class EnemyObject {
         }
     }
 
-    underAttack(damage: number) {
-        console.log('damage', damage, "this.hp", this.hp)
-        this.hp -= damage
+    underAttack(weapenItem: IWeaponItem) {
+        console.log('damage', weapenItem.damage, "this.hp", this.hp)
+        this.beKnockedBack(weapenItem)
+        this.hp -= weapenItem.damage
         if (this.hp <= 0) {
-
             this.destroy()
         }
+    }
+
+    beKnockedBack(weapenItem: IWeaponItem) {
+        this.shape.position.x += Math.cos(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
+        this.shape.position.y += Math.sin(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
+        // this.shape.position.x = this.x
+        // this.shape.position.y = this.y
     }
 }

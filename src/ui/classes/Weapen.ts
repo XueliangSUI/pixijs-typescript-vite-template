@@ -1,12 +1,13 @@
 import { PixiGraphics, PixiSprite } from "src/plugins/engine";
 import { EnemyObject } from "./Enemy";
 import { TestScene } from "@ui/scenes/test.scene";
+import { IWeaponItem } from "./WeapenBulletItem";
 
-export interface IWeaponItem {
-    life: number
-    destroy: Function
-    damage: number
-}
+// export interface IWeaponItem {
+//     life: number
+//     destroy: Function
+//     damage: number
+// }
 
 export class WeapenObject {
 
@@ -18,6 +19,7 @@ export class WeapenObject {
     shape!: PixiSprite | PixiGraphics;
     life: number = 1;// 可撞击次数
     hittedEnemies: EnemyObject[] = [];
+    knockback: number = 0;
 
     constructor(scene: TestScene) { }
 
@@ -31,7 +33,7 @@ export class WeapenObject {
             weapenItem.destroy()
         }
         // 敌人是否销毁
-        enemy.underAttack(weapenItem.damage)
+        enemy.underAttack(weapenItem)
     }
     attack() { }
 

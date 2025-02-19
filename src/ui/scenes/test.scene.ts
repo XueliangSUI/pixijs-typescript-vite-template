@@ -1,6 +1,7 @@
+import '@pixi/gif';
 import { PixiContainer, PixiSprite, PixiGraphics, PixiSoundLibrary, PixiText } from "../../plugins/engine";
 import { Manager, SceneInterface } from "../../entities/manager";
-import { Assets, Graphics } from "pixi.js";
+import { Assets, Graphics, Texture, TilingSprite } from "pixi.js";
 import { Loader } from "pixi.js";
 import { App } from '../../app';
 import gsap from "gsap";
@@ -17,11 +18,12 @@ export class TestScene extends PixiContainer implements SceneInterface {
     // gameBgImg: PixiSprite;
     enemiesList: EnemyObject[] = [];
     bg: PixiContainer;
-    player: PlayerObject;
+    player!: PlayerObject;
     bloodBar: BloodBar;
     app: App;
     weapenns: WeapenObject[] = []
     enemyId: number = 0 //给敌人生成自增id
+    allAssets: { [key: string]: Texture | Texture[] } = {}
 
     constructor(app: App) {
         super();
@@ -29,7 +31,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
         // 屏幕宽高中的较小值，作为基准长度
         this.baseLength = Math.min(Manager.width, Manager.height) / 1000
         this.bg = new PixiContainer();
-        this.player = new PlayerObject(this, this.baseLength);
+
         this.bloodBar = new BloodBar(this.baseLength)
         this.addChild(this.bg);
         this.addChild(this.bloodBar.frameShape);
@@ -39,6 +41,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
     }
 
     async _constructor(app: App) {
+        await this.loadAllAssets();
 
         this.interactive = true;
         this.position.x = 0;
@@ -54,26 +57,24 @@ export class TestScene extends PixiContainer implements SceneInterface {
         // const imageUrl = 'images/game-bg-scene-1.png'; // 替换为实际的图片URL
         const imageUrl = 'images/game-bg-scene-2.png'; // 替换为实际的图片URL
         const bgTexture = await Assets.load(imageUrl)
-        const squareSize = this.unitLength(1100)
-        for (let row = 0; row < 100; row++) {
-            for (let col = 0; col < 100; col++) {
-                const sprite = new PixiSprite(bgTexture);
-                sprite.width = squareSize;
-                sprite.height = squareSize;
-                sprite.x = col * squareSize;
-                sprite.y = row * squareSize;
-                // 将Sprite添加到Container中
-                this.bg.addChild(sprite);
-            }
-        }
-
-
+        const tilingSprite = new TilingSprite({
+            texture: this.allAssets["bg-scene-2"] as Texture,
+            width: Manager.width * 100,
+            height: Manager.height * 100,
+        });
+        // 初始位置为中心
+        tilingSprite.position.x = this.bg.width / 2;
+        tilingSprite.position.y = this.bg.height / 2;
+        tilingSprite.anchor.set(0.5);
+        this.bg.addChild(tilingSprite);
 
         this.bg.on('pointerdown', () => {
             console.log('bg pointerdown');
         });
-        this.bg.addChild(this.player.shape);
 
+
+        this.player = new PlayerObject(this, this.baseLength);
+        this.bg.addChild(this.player.shape);
 
         generateEmemies(this);
         backgroundMove(app, this.bg, this.player, this.baseLength);
@@ -93,6 +94,20 @@ export class TestScene extends PixiContainer implements SceneInterface {
 
     resize(parentWidth: number, parentHeight: number): void {
 
+    }
+
+    async loadAllAssets() {
+        const allAssets: { [key: string]: string | string[] } = {
+            "bg-scene-1": "images/game-bg-scene-1.png",
+            "bg-scene-2": "images/game-bg-scene-2.png",
+            "test-slime": ["images/test-slime-1.png", "images/test-slime-2.png"],
+            "weapen-bullet": "images/weapen-bullet.png",
+            "direction-arrow": "images/direction-arrow.png"
+        }
+        this.allAssets = {}
+        for (const key in allAssets) {
+            this.allAssets[key] = typeof allAssets[key] === "string" ? await Assets.load(allAssets[key]) : await Promise.all(allAssets[key].map((url: string) => Assets.load(url)))
+        }
     }
 
     newEnemyId() {
@@ -116,8 +131,6 @@ export class TestScene extends PixiContainer implements SceneInterface {
             }
         })
         if (distanceLimit && minDistance > distanceLimit) {
-            console.log("minDistance: ", minDistance);
-            console.log("distanceLimit: ", distanceLimit);
             return null;
         } else {
             return closestEnemy
@@ -132,7 +145,6 @@ export class TestScene extends PixiContainer implements SceneInterface {
                         enemy.destroy();
                         scene.player.minusHp(enemy.atk);
                         // 输出所有scene.bg的子元素
-                        console.log(scene.bg.children);
                     }
                 }
             })
@@ -229,7 +241,7 @@ const generateEmemies = (scene: TestScene) => {
         const angle = Math.random() * Math.PI * 2;
         enemy.shape.position.x = scene.player.shape.position.x + Math.cos(angle) * enemyInitDistance;
         enemy.shape.position.y = scene.player.shape.position.y + Math.sin(angle) * enemyInitDistance;
-
+        console.log("scene.bg.addChild", enemy.shape);
         scene.bg.addChild(enemy.shape);
 
     }, 1000);

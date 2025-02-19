@@ -5,7 +5,7 @@ import { EnemyObject } from "./Enemy";
 import { PixiSprite, PixiTexture } from "@src/plugins/engine";
 import { WeapenObject } from "./Weapen";
 
-export interface IWeapenBulletItem {
+export interface INewWeapenBulletItem {
     scene: TestScene
     size: number
     targetEnemy: EnemyObject
@@ -14,9 +14,19 @@ export interface IWeapenBulletItem {
     range: number
     life: number
     damage: number
+    knockback: number
+    angle?: number
 }
 
-export class WeapenBulletItem {
+export interface IWeaponItem {
+    destroy: Function
+    life: number
+    damage: number
+    knockback: number
+    angle?: number
+}
+
+export class WeapenBulletItem implements IWeaponItem {
     scene: TestScene
     angle: number // 角度
     size: number //半径
@@ -26,14 +36,15 @@ export class WeapenBulletItem {
     range: number
     life: number
     damage: number
+    knockback: number
     x1: number
     y1: number
     r1: number
     x2: number
     y2: number
     r2: number
-    constructor(props: IWeapenBulletItem) {
-        const { scene, targetEnemy, speed, texture, size, range, life, damage } = props
+    constructor(props: INewWeapenBulletItem) {
+        const { scene, targetEnemy, speed, texture, size, range, life, damage, knockback } = props
         this.texture = texture
         this.speed = speed
         this.scene = scene
@@ -41,6 +52,7 @@ export class WeapenBulletItem {
         this.range = range
         this.life = life
         this.damage = damage
+        this.knockback = knockback
 
         this.shape = new PixiSprite(this.texture)
         this.shape.width = this.size * 2
@@ -89,7 +101,13 @@ export class WeapenBulletItem {
     }
 
     destroy() {
-        this.shape.destroy({ children: true, texture: true });
+        if (this.shape) {
+            try {
+                this.shape.parent?.removeChild(this.shape);
+            } catch (e) {
+                console.error("WeapenBulletItem destroy",e)
+            }
+        }
         // 移除动画
         this.scene.app.ticker!.remove(this.animation);
     }

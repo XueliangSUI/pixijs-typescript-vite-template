@@ -2,7 +2,7 @@ import { TestScene } from "@ui/scenes/test.scene";
 import { WeapenObject } from "./Weapen";
 import { Assets } from "pixi.js";
 import { PixiTexture } from "@src/plugins/engine";
-import { IWeapenBulletItem, WeapenBulletItem } from "./WeapenBulletItem";
+import { WeapenBulletItem } from "./WeapenBulletItem";
 export class WeapenBullet extends WeapenObject {
     level = 0
     scene: TestScene
@@ -10,10 +10,11 @@ export class WeapenBullet extends WeapenObject {
     constructor(scene: TestScene) {
         super(scene);
         this.scene = scene
-        this.frequency = 0.5
+        this.frequency = 2
+        this.knockback = scene.unitLength(20)
         this.speed = scene.unitLength(14)
         this.range = scene.unitLength(800)
-        this.size = scene.unitLength(6)
+        this.size = scene.unitLength(8)
         this.loadTexture()
     }
 
@@ -52,10 +53,11 @@ export class WeapenBullet extends WeapenObject {
                 texture: this.texture,
                 range: this.range,
                 life: this.life,
-                damage: this.damage
+                damage: this.damage,
+                knockback: this.knockback
             })
             // await bullet.create(this.scene)
 
-        }, 1000 * this.frequency)
+        }, 1000 * (1 / this.frequency))
     }
 }
