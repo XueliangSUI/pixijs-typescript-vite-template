@@ -11,15 +11,19 @@ import { EnemyObject } from "@ui/classes/Enemy"
 import { TestEnemyObject } from "@ui/classes/TestEnemyObject"
 import { WeapenObject } from "@ui/classes/Weapen"
 import { WeapenBullet } from "@ui/classes/WeapenBullet"
+import { ExpBar } from '../classes/ExpBar';
+import { Exp } from '../classes/Exp';
 
 
 export class TestScene extends PixiContainer implements SceneInterface {
     baseLength: number;
     // gameBgImg: PixiSprite;
     enemiesList: EnemyObject[] = [];
+    expList: Exp[] = [];
     bg: PixiContainer;
     player!: PlayerObject;
     bloodBar: BloodBar;
+    expBar: ExpBar;
     app: App;
     weapenns: WeapenObject[] = []
     enemyId: number = 0 //给敌人生成自增id
@@ -31,10 +35,12 @@ export class TestScene extends PixiContainer implements SceneInterface {
         // 屏幕宽高中的较小值，作为基准长度
         this.baseLength = Math.min(Manager.width, Manager.height) / 1000
         this.bg = new PixiContainer();
-
-        this.bloodBar = new BloodBar(this.baseLength)
         this.addChild(this.bg);
-        this.addChild(this.bloodBar.frameShape);
+
+        this.bloodBar = new BloodBar(this)
+        this.expBar = new ExpBar(this)
+
+
         this._constructor(app).then(() => {
             console.log('TestScene constructor done');
         });
@@ -54,14 +60,13 @@ export class TestScene extends PixiContainer implements SceneInterface {
         this.bg.position.y = 0;
         this.bg.interactive = true;
 
-        // const imageUrl = 'images/game-bg-scene-1.png'; // 替换为实际的图片URL
-        const imageUrl = 'images/game-bg-scene-2.png'; // 替换为实际的图片URL
-        const bgTexture = await Assets.load(imageUrl)
+
         const tilingSprite = new TilingSprite({
-            texture: this.allAssets["bg-scene-2"] as Texture,
+            texture: this.allAssets["bg-scene-4"] as Texture,
             width: Manager.width * 100,
             height: Manager.height * 100,
         });
+        tilingSprite.tileScale.set(2);
         // 初始位置为中心
         tilingSprite.position.x = this.bg.width / 2;
         tilingSprite.position.y = this.bg.height / 2;
@@ -100,9 +105,13 @@ export class TestScene extends PixiContainer implements SceneInterface {
         const allAssets: { [key: string]: string | string[] } = {
             "bg-scene-1": "images/game-bg-scene-1.png",
             "bg-scene-2": "images/game-bg-scene-2.png",
+            "bg-scene-3": "images/game-bg-scene-3.png",
+            "bg-scene-4": "images/game-bg-scene-4.png",
             "test-slime": ["images/test-slime-1.png", "images/test-slime-2.png"],
             "weapen-bullet": "images/weapen-bullet.png",
-            "direction-arrow": "images/direction-arrow.png"
+            "direction-arrow": "images/direction-arrow.png",
+            "exp": "images/exp.png"
+
         }
         this.allAssets = {}
         for (const key in allAssets) {
@@ -139,12 +148,21 @@ export class TestScene extends PixiContainer implements SceneInterface {
 
     collisionDetections = (scene: TestScene) => {
         scene.app.ticker!.add((time: any) => {
+            // 对敌人和玩家的碰撞检测
             scene.enemiesList.forEach((enemy) => {
                 if (enemy.shape) {
                     if (this.collisionDetectionCircle(scene.player, enemy)) {
                         enemy.destroy();
                         scene.player.minusHp(enemy.atk);
                         // 输出所有scene.bg的子元素
+                    }
+                }
+            })
+            // 对经验球和玩家的碰撞检测
+            scene.expList.forEach((exp) => {
+                if (exp.shape) {
+                    if (this.collisionDetectionCirclePosition({ x1: this.player.shape.position.x, y1: this.player.shape.position.y, x2: exp.shape.position.x, y2: exp.shape.position.y, r1: this.player.expAbsorbRange, r2: exp.shape.width / 2 })) {
+                        exp.absorbedByPlayer()
                     }
                 }
             })
@@ -211,6 +229,11 @@ const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseL
         player.shape.position.x += speedX;
         bg.position.y -= speedY;
         player.shape.position.y += speedY;
+        // if (player.directionArrow) {
+        //     player.directionArrow.rotation = angle + 60;
+        // }
+        const realAngle = angle / Math.PI * 180;
+        player.updateDirectionArrow(realAngle + 90);
 
     })
 

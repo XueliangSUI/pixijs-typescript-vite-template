@@ -3,7 +3,8 @@ import { Manager } from "@src/entities/manager";
 import { PixiContainer, PixiGraphics, PixiSprite } from "@src/plugins/engine";
 import { IWeaponItem } from "./WeapenBulletItem";
 import gsap from "gsap";
-import { AnimatedSprite } from "pixi.js";
+import { AnimatedSprite, Texture } from "pixi.js";
+import { Exp } from "./Exp";
 
 export class EnemyObject {
     baseLength = Math.min(Manager.width, Manager.height) / 1000
@@ -53,18 +54,15 @@ export class EnemyObject {
                         if (this.shape instanceof AnimatedSprite) {
                             this.shape.stop()
                         }
-                        // 销毁 shape
+                        console.log("销毁", this.shape);
+                        const position = { x: this.shape.position.x, y: this.shape.position.y }
                         this.shape.destroy({ children: true, texture: true });
+                        this.dropExp(position)
+                    } else {
+                        console.log("this.shape不存在");
                     }
                 }
             })
-            // 清空相关属性
-            this.speed = 0;
-            this.hp = 0;
-            this.maxHp = 0;
-            this.x = 0;
-            this.y = 0;
-            this.shape = null as any;
         }
     }
 
@@ -80,7 +78,9 @@ export class EnemyObject {
     beKnockedBack(weapenItem: IWeaponItem) {
         this.shape.position.x += Math.cos(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
         this.shape.position.y += Math.sin(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
-        // this.shape.position.x = this.x
-        // this.shape.position.y = this.y
+    }
+
+    dropExp(position: { x: number, y: number }) {
+        new Exp(this.scene, position, 1)
     }
 }

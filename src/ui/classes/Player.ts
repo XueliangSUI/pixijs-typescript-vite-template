@@ -13,14 +13,19 @@ export class PlayerObject {
     shape: PixiSprite | PixiGraphics;
     weapens: WeapenObject[] = [];
     scene: TestScene
+    directionArrow: Sprite | Container
+    expAbsorbRange: number = 0
+    exp: number = 0
+    lv: number = 1
     constructor(scene: TestScene, baseLength: number) {
         this.scene = scene
-        this.speed = 5 * baseLength;
+        this.speed = this.scene.unitLength(5);
         this.maxHp = 100;
         this.hp = 100;
+        this.expAbsorbRange = this.scene.unitLength(100)
         // shape是一个黄色的圆形
         const graphics = new PixiGraphics();
-        const radius = 15 * baseLength;
+        const radius = this.scene.unitLength(15);
         graphics.circle(0, 0, radius);
         graphics.fill(0xFFFF00);
         graphics.pivot.set(0.5, 0.5);
@@ -30,23 +35,24 @@ export class PlayerObject {
         this.shape.position.y = Manager.height / 2;
 
         // 添加方向箭头
-        // const arrowContainer = new Container()
-        const arrow = new Sprite(scene.allAssets["arrow"] as Texture)
-        arrow.pivot.set(0.5, 0.5)
+        const arrowContainer = new Container()
+        const arrow = new Sprite(scene.allAssets["direction-arrow"] as Texture)
+        arrow.anchor.set(0.5, 0.5)
         arrow.width = 20
         arrow.height = 20
-        arrow.position.set(Manager.width / 2,Manager.height / 2)
-        this.scene.addChild(arrow)
-        // arrowContainer.addChild(arrow)
+        // this.scene.addChild(arrow)
+        arrow.position.set(this.shape.position.x, this.shape.position.y)
+        arrowContainer.addChild(arrow)
         // arrow初始位于player的正上方2个半径的位置
-        // arrow.position.set(0, -radius * 2)
+        arrow.position.set(0, -radius * 2)
         // arrowContainer底边中心设为中点  
-        // arrowContainer.pivot.set(0.5, 1)
+        arrowContainer.pivot.set(0.5, 1)
         // arrowContainer位置设为player的位置
-        // arrowContainer.position.set(this.shape.position.x, this.shape.position.y)
+        arrowContainer.position.set(this.shape.position.x, this.shape.position.y)
         // arrowContainer旋转角度设为0  
-        // arrowContainer.rotation = 0
-        // this.scene.addChild(arrowContainer)
+        arrowContainer.angle = 0
+        this.directionArrow = arrowContainer
+        this.scene.addChild(arrowContainer)
 
 
         const weapenBullet = new WeapenBullet(this.scene)
@@ -54,6 +60,10 @@ export class PlayerObject {
 
         // this.shape.width = 50;
         // this.shape.height = 50;
+
+    }
+
+    init() {
 
     }
 
@@ -84,5 +94,20 @@ export class PlayerObject {
         this.weapens.push(weapen)
         weapen.attack()
 
+    }
+
+    updateDirectionArrow(angle: number) {
+        this.directionArrow.angle = angle
+
+    }
+
+    updateExp(exp: number) {
+        this.exp += exp
+        this.scene.expBar.update(this.exp, this.lv * 100)
+        if (this.exp >= this.lv * 100) {
+            this.lv += 1
+            this.exp = 0
+            this.scene.expBar.update(this.exp, this.lv * 100)
+        }
     }
 }
