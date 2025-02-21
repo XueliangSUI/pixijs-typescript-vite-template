@@ -13,9 +13,9 @@ export class TestEnemyObject extends EnemyObject {
     }
 
     initShape() {
-        const assest = this.scene.allAssets["test-slime"] as Texture[]
+        const assest = this.scene.allAssets["enemy-mushroom"] as Texture[]
         const shape = new AnimatedSprite(assest)
-        shape.animationSpeed = 0.05
+        shape.animationSpeed = 0.1
         shape.play()
         shape.width = this.scene.unitLength(40)
         shape.height = this.scene.unitLength(40)

@@ -1,7 +1,7 @@
 import { TestScene } from "@ui/scenes/test.scene";
 import { Manager } from "@src/entities/manager";
 import { PixiContainer, PixiGraphics, PixiSprite } from "@src/plugins/engine";
-import { IWeaponItem } from "./WeapenBulletItem";
+import { IWeaponItem } from "@ui/interfaces/IWeaponItem";
 import gsap from "gsap";
 import { AnimatedSprite, Texture } from "pixi.js";
 import { Exp } from "./Exp";

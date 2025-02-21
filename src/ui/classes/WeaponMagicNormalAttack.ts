@@ -3,21 +3,25 @@ import { WeaponObject } from "./Weapen";
 import { Assets } from "pixi.js";
 import { PixiTexture } from "@src/plugins/engine";
 import { WeapenBulletItem } from "./WeapenBulletItem";
-export class WeapenBullet extends WeaponObject {
+import { WeaponMagicNormalAttackItem } from './WeaponMagicNormalAttackItem'
+
+
+export class WeaponMagicNormalAttack extends WeaponObject {
 
     scene: TestScene
     texture!: PixiTexture
-    name: string = "魔弹"
-    description: string = "将纯粹的魔力汇聚成团并发射，拥有可靠的伤害、范围和击退效果，是最基础但有效的攻击魔法。";
+    name: string = "一般攻击魔法"
+    description: string = "高泛用性的快速攻击魔法，能对目标生物造成可观的伤害。";
     constructor(scene: TestScene) {
         super(scene);
         this.scene = scene
-        this.frequency = 2
+        this.frequency = 1
+        this.damage = 200
         this.knockback = scene.unitLength(20)
-        this.speed = scene.unitLength(14)
+        this.speed = scene.unitLength(40)
         this.range = scene.unitLength(800)
-        this.size = scene.unitLength(14)
-        this.texture = this.scene.allAssets["weapen-bullet"] as PixiTexture;
+        this.size = scene.unitLength(10)
+        this.texture = this.scene.allAssets["weapon-magic-normal-attack"] as PixiTexture;
     }
 
     async attack() {
@@ -31,7 +35,7 @@ export class WeapenBullet extends WeaponObject {
             }
             // const { WeapenBulletItem } = await import("./WeapenBulletItem");
 
-            const bullet = new WeapenBulletItem({
+            const bullet = new WeaponMagicNormalAttackItem({
                 scene: this.scene,
                 targetEnemy: targetEnemy,
                 speed: this.speed,
@@ -40,7 +44,7 @@ export class WeapenBullet extends WeaponObject {
                 range: this.range,
                 life: this.life,
                 damage: this.damage,
-                knockback: this.knockback
+                knockback: this.knockback,
             })
 
 

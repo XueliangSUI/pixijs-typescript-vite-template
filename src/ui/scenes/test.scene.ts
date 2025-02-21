@@ -9,7 +9,7 @@ import { PlayerObject } from "@ui/classes/Player"
 import { BloodBar } from "@ui/classes/BloodBar"
 import { EnemyObject } from "@ui/classes/Enemy"
 import { TestEnemyObject } from "@ui/classes/TestEnemyObject"
-import { WeapenObject } from "@ui/classes/Weapen"
+import { WeaponObject } from "@ui/classes/Weapen"
 import { WeapenBullet } from "@ui/classes/WeapenBullet"
 import { ExpBar } from '../classes/ExpBar';
 import { Exp } from '../classes/Exp';
@@ -25,9 +25,10 @@ export class TestScene extends PixiContainer implements SceneInterface {
     bloodBar: BloodBar;
     expBar: ExpBar;
     app: App;
-    weapenns: WeapenObject[] = []
+    weapons: WeaponObject[] = []
     enemyId: number = 0 //给敌人生成自增id
     allAssets: { [key: string]: Texture | Texture[] } = {}
+    isPaused = false
 
     constructor(app: App) {
         super();
@@ -83,9 +84,10 @@ export class TestScene extends PixiContainer implements SceneInterface {
 
         generateEmemies(this);
         backgroundMove(app, this.bg, this.player, this.baseLength);
-        enemiesMove(this)
+        this.enemiesMove(this)
         this.collisionDetections(this);
 
+        document.addEventListener('keydown', this.handleKeyDown.bind(this));
 
     }
 
@@ -110,6 +112,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
             "test-slime": ["images/test-slime-1.png", "images/test-slime-2.png"],
             "enemy-mushroom": ["images/enemy-mushroom-1.png", "images/enemy-mushroom-2.png"],
             "weapen-bullet": "images/weapen-bullet.png",
+            "weapon-magic-normal-attack": "images/weapon-magic-normal-attack.png",
             "direction-arrow": "images/direction-arrow.png",
             "exp": "images/exp.png"
 
@@ -149,6 +152,8 @@ export class TestScene extends PixiContainer implements SceneInterface {
 
     collisionDetections = (scene: TestScene) => {
         scene.app.ticker!.add((time: any) => {
+
+            console.log("this.isPaused", this.isPaused);
             // 对敌人和玩家的碰撞检测
             scene.enemiesList.forEach((enemy) => {
                 if (enemy.shape) {
@@ -191,6 +196,36 @@ export class TestScene extends PixiContainer implements SceneInterface {
             return this.collisionDetectionCirclePosition({ x1: x, y1: y, x2: enemy.shape.position.x, y2: enemy.shape.position.y, r1: radius, r2: enemy.shape.width / 2 })
         })
         return enemies
+    }
+
+    handleKeyDown = (event: KeyboardEvent) => {
+
+        if (event.code === 'Space') {
+            // 在这里处理按下空格键的逻辑
+            console.log('按下了空格键', event, this);
+            this.isPaused = !this.isPaused
+        }
+    }
+
+    ifPaused = () => {
+        return this.isPaused
+    }
+
+    enemiesMove = (scene: TestScene) => {
+        scene.app.ticker!.add((time: any) => {
+            if (this.ifPaused()) return
+            scene.enemiesList.forEach((enemy) => {
+                if (enemy.shape) {
+                    const deltaX = scene.player.shape.position.x - enemy.shape.position.x;
+                    const deltaY = scene.player.shape.position.y - enemy.shape.position.y;
+                    const angle = Math.atan2(deltaY, deltaX);
+                    const speedX = Math.cos(angle) * enemy.speed * time.deltaTime;
+                    const speedY = Math.sin(angle) * enemy.speed * time.deltaTime;
+                    enemy.shape.position.x += speedX;
+                    enemy.shape.position.y += speedY;
+                }
+            })
+        })
     }
 
 }
@@ -240,21 +275,7 @@ const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseL
 
 }
 
-const enemiesMove = (scene: TestScene) => {
-    scene.app.ticker!.add((time: any) => {
-        scene.enemiesList.forEach((enemy) => {
-            if (enemy.shape) {
-                const deltaX = scene.player.shape.position.x - enemy.shape.position.x;
-                const deltaY = scene.player.shape.position.y - enemy.shape.position.y;
-                const angle = Math.atan2(deltaY, deltaX);
-                const speedX = Math.cos(angle) * enemy.speed * time.deltaTime;
-                const speedY = Math.sin(angle) * enemy.speed * time.deltaTime;
-                enemy.shape.position.x += speedX;
-                enemy.shape.position.y += speedY;
-            }
-        })
-    })
-}
+
 
 const generateEmemies = (scene: TestScene) => {
     const enemyInitDistance = Math.max(Manager.width, Manager.height) / 2 + 100 * scene.baseLength;
@@ -268,7 +289,7 @@ const generateEmemies = (scene: TestScene) => {
         console.log("scene.bg.addChild", enemy.shape);
         scene.bg.addChild(enemy.shape);
 
-    }, 1000);
+    }, 250);
 }
 
 

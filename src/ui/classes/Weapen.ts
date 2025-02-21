@@ -1,7 +1,7 @@
 import { PixiGraphics, PixiSprite } from "src/plugins/engine";
 import { EnemyObject } from "./Enemy";
 import { TestScene } from "@ui/scenes/test.scene";
-import { IWeaponItem } from "./WeapenBulletItem";
+import { IWeaponItem } from "@ui/interfaces/IWeaponItem";
 
 // export interface IWeaponItem {
 //     life: number
@@ -9,7 +9,7 @@ import { IWeaponItem } from "./WeapenBulletItem";
 //     damage: number
 // }
 
-export class WeapenObject {
+export class WeaponObject {
 
     frequency: number = 0; // 频率每秒发射次数
     speed: number = 0;
@@ -19,7 +19,11 @@ export class WeapenObject {
     shape!: PixiSprite | PixiGraphics;
     life: number = 1;// 可撞击次数
     hittedEnemies: EnemyObject[] = [];
+    level = 0;
     knockback: number = 0;
+    name: string = '' //武器名称
+    preview: PixiSprite | null = null//预览图片
+    description: string = '' //武器描述文字
 
     constructor(scene: TestScene) { }
 
@@ -35,6 +39,11 @@ export class WeapenObject {
         // 敌人是否销毁
         enemy.underAttack(weapenItem)
     }
+
+    upgrade(up = 1) {
+        this.level += up
+    }
+
     attack() { }
 
     destroy() { }

@@ -2,16 +2,17 @@ import { Manager } from "../../entities/manager";
 import { PixiGraphics, PixiSprite } from "../../plugins/engine";
 import gsap from "gsap";
 import { TestScene } from "@ui/scenes/test.scene";
-import { WeapenObject } from "./Weapen";
+import { WeaponObject } from "./Weapen";
 import { WeapenBullet } from "./WeapenBullet";
 import { Container, Sprite, Texture } from "pixi.js";
+import { WeaponMagicNormalAttack } from "./WeaponMagicNormalAttack";
 
 export class PlayerObject {
     speed: number;
     maxHp: number;
     hp: number;
     shape: PixiSprite | PixiGraphics;
-    weapens: WeapenObject[] = [];
+    weapons: WeaponObject[] = [];
     scene: TestScene
     directionArrow: Sprite | Container
     expAbsorbRange: number = 0
@@ -57,6 +58,8 @@ export class PlayerObject {
 
         const weapenBullet = new WeapenBullet(this.scene)
         this.addWeapen(weapenBullet)
+        const weaponMagicNormalAttack = new WeaponMagicNormalAttack(this.scene)
+        this.addWeapen(weaponMagicNormalAttack)
 
         // this.shape.width = 50;
         // this.shape.height = 50;
@@ -90,8 +93,8 @@ export class PlayerObject {
         });
     }
 
-    addWeapen(weapen: WeapenObject) {
-        this.weapens.push(weapen)
+    addWeapen(weapen: WeaponObject) {
+        this.weapons.push(weapen)
         weapen.attack()
 
     }
