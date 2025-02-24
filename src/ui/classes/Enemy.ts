@@ -67,7 +67,7 @@ export class EnemyObject {
     }
 
     underAttack(weapenItem: IWeaponItem) {
-        console.log('damage', weapenItem.damage, "this.hp", this.hp)
+        // console.log('damage', weapenItem.damage, "this.hp", this.hp)
         this.beKnockedBack(weapenItem)
         this.hp -= weapenItem.damage
         if (this.hp <= 0) {

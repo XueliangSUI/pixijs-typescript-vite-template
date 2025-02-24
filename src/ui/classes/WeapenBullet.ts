@@ -22,9 +22,11 @@ export class WeapenBullet extends WeaponObject {
 
     async attack() {
 
+        await this.randomDelay()
+
         setInterval(async () => {
             // console.log('async attack')
-            const targetEnemy = this.scene.findClosestEnemy(this.range)
+            const targetEnemy = this.scene.findClosestEnemy({ distanceLimit: this.range })
             if (!targetEnemy) {
                 console.log('no target')
                 return

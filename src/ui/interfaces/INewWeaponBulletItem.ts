@@ -13,4 +13,5 @@ export interface INewWeaponBulletItem {
     damage: number
     knockback: number
     angle?: number
+    refPosition?: { x: number, y: number }
 }

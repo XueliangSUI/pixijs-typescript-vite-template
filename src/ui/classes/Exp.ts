@@ -10,7 +10,6 @@ export class Exp {
     constructor(scene: TestScene, position: { x: number, y: number }, type: number = 1) {
         this.scene = scene
         this.type = type
-        console.log('Exp')
 
         this.shape = new PixiSprite(this.scene.allAssets["exp"] as Texture)
         this.shape.anchor.set(0.5)

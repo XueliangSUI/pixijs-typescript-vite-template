@@ -67,7 +67,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
             width: Manager.width * 100,
             height: Manager.height * 100,
         });
-        tilingSprite.tileScale.set(2);
+        tilingSprite.tileScale.set(3);
         // 初始位置为中心
         tilingSprite.position.x = this.bg.width / 2;
         tilingSprite.position.y = this.bg.height / 2;
@@ -83,8 +83,10 @@ export class TestScene extends PixiContainer implements SceneInterface {
         this.bg.addChild(this.player.shape);
 
         generateEmemies(this);
-        backgroundMove(app, this.bg, this.player, this.baseLength);
         this.enemiesMove(this)
+        // testGenerateEnemies(this)
+        backgroundMove(this, this.bg, this.player, this.baseLength);
+
         this.collisionDetections(this);
 
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
@@ -112,7 +114,9 @@ export class TestScene extends PixiContainer implements SceneInterface {
             "test-slime": ["images/test-slime-1.png", "images/test-slime-2.png"],
             "enemy-mushroom": ["images/enemy-mushroom-1.png", "images/enemy-mushroom-2.png"],
             "weapen-bullet": "images/weapen-bullet.png",
-            "weapon-magic-normal-attack": "images/weapon-magic-normal-attack.png",
+            "weapon-magic-general-attack": "images/weapon-magic-general-attack.png",
+            "weapon-magic-general-defense": "images/weapon-magic-general-defense.png",
+            "weapon-magic-chain-lightning": "images/weapon-magic-chain-lightning.png",
             "direction-arrow": "images/direction-arrow.png",
             "exp": "images/exp.png"
 
@@ -128,16 +132,33 @@ export class TestScene extends PixiContainer implements SceneInterface {
         return this.enemyId;
     }
 
-    findClosestEnemy = (distanceLimit?: number): EnemyObject | null => {
+    // findClosestEnemy = (distanceLimit?: number, refPosition?: { x: number, y: number }): EnemyObject | null => {
+    findClosestEnemy = ({
+        distanceLimit,
+        refPosition,
+        exceptedEnemiesIds = []
+    }: {
+        distanceLimit?: number,
+        refPosition?: { x: number, y: number }
+        exceptedEnemiesIds?: number[]
+    }): EnemyObject | null => {
+
         let closestEnemy: EnemyObject | null = null;
         let minDistance = Infinity;
+        if (!refPosition) {
+            refPosition = { x: this.player.shape.position.x, y: this.player.shape.position.y }
+        }
         this.enemiesList.forEach((enemy) => {
             if (enemy.shape) {
-                const distance = Math.sqrt((enemy.shape.position.x - this.player.shape.position.x) ** 2 + (enemy.shape.position.y - this.player.shape.position.y) ** 2);
+                const distance = Math.sqrt((enemy.shape.position.x - refPosition.x) ** 2 + (enemy.shape.position.y - refPosition.y) ** 2);
 
                 if (distance < minDistance) {
-                    minDistance = distance;
-                    closestEnemy = enemy;
+
+                    if (!exceptedEnemiesIds.includes(enemy.id)) {
+                        minDistance = distance;
+                        closestEnemy = enemy;
+                    }
+
                     if (closestEnemy) {
                     }
                 }
@@ -153,7 +174,6 @@ export class TestScene extends PixiContainer implements SceneInterface {
     collisionDetections = (scene: TestScene) => {
         scene.app.ticker!.add((time: any) => {
 
-            console.log("this.isPaused", this.isPaused);
             // 对敌人和玩家的碰撞检测
             scene.enemiesList.forEach((enemy) => {
                 if (enemy.shape) {
@@ -223,6 +243,20 @@ export class TestScene extends PixiContainer implements SceneInterface {
                     const speedY = Math.sin(angle) * enemy.speed * time.deltaTime;
                     enemy.shape.position.x += speedX;
                     enemy.shape.position.y += speedY;
+                    // 如果这个enemy跟另一个enemyB碰撞，计算这两个enemy的角度，让enemyB沿该角度移动enemyB.speed
+                    scene.enemiesList.forEach((anotherEnemy) => {
+                        if (anotherEnemy.id !== enemy.id && anotherEnemy.shape) {
+                            if (this.collisionDetectionCircle(enemy, anotherEnemy)) {
+                                const deltaX = anotherEnemy.shape.position.x - enemy.shape.position.x;
+                                const deltaY = anotherEnemy.shape.position.y - enemy.shape.position.y;
+                                const angle = Math.atan2(deltaY, deltaX);
+                                const speedX = Math.cos(angle) * anotherEnemy.speed * time.deltaTime;
+                                const speedY = Math.sin(angle) * anotherEnemy.speed * time.deltaTime;
+                                anotherEnemy.shape.position.x += speedX;
+                                anotherEnemy.shape.position.y += speedY;
+                            }
+                        }
+                    })
                 }
             })
         })
@@ -244,7 +278,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
 
 
 
-const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseLength: number) => {
+const backgroundMove = (scene: TestScene, bg: PixiContainer, player: PlayerObject, baseLength: number) => {
     let mouseX = 0;
     let mouseY = 0;
     bg.on('mousemove', (event: any) => {
@@ -252,10 +286,11 @@ const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseL
         mouseY = event.data.global.y;
 
     });
-    app.ticker!.add((time: any) => {
+    scene.app.ticker!.add((time: any) => {
+        if (scene.ifPaused()) return
         // console.log("MouseX: ", mouseX, "MouseY: ", mouseY);
-        const centerX = app._app.renderer.width / 2;
-        const centerY = app._app.renderer.height / 2;
+        const centerX = Manager.width / 2;
+        const centerY = Manager.height / 2;
         const deltaX = mouseX - centerX;
         const deltaY = mouseY - centerY;
         const angle = Math.atan2(deltaY, deltaX);
@@ -280,16 +315,29 @@ const backgroundMove = (app: App, bg: PixiContainer, player: PlayerObject, baseL
 const generateEmemies = (scene: TestScene) => {
     const enemyInitDistance = Math.max(Manager.width, Manager.height) / 2 + 100 * scene.baseLength;
     const timer = setInterval(() => {
+        if (scene.enemiesList.length > 100) {
+            return
+        }
         const enemy = new TestEnemyObject(scene);
         scene.enemiesList.push(enemy);
         // 以enemyInitDistance为半径，以player为中心生成敌人
         const angle = Math.random() * Math.PI * 2;
         enemy.shape.position.x = scene.player.shape.position.x + Math.cos(angle) * enemyInitDistance;
         enemy.shape.position.y = scene.player.shape.position.y + Math.sin(angle) * enemyInitDistance;
-        console.log("scene.bg.addChild", enemy.shape);
+
         scene.bg.addChild(enemy.shape);
 
     }, 250);
+}
+
+const testGenerateEnemies = (scene: TestScene) => {
+    for (let i = 0; i < 5; i++) {
+        const enemy = new TestEnemyObject(scene);
+        scene.enemiesList.push(enemy);
+        enemy.shape.position.x = 0 + i * 50
+        enemy.shape.position.y = 0
+        scene.bg.addChild(enemy.shape);
+    }
 }
 
 

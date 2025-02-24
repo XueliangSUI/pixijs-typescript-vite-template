@@ -30,15 +30,20 @@ export class WeaponObject {
 
 
     // 碰撞敌人
-    static collideEnemy(weapenItem: IWeaponItem, enemy: EnemyObject) {
+    static collideEnemy(weapenItem: IWeaponItem, enemy: EnemyObject, reduceWeaponLife = true) {
         // 子弹是否继续存在
-        weapenItem.life--;
-        if (weapenItem.life <= 0) {
-            weapenItem.destroy()
+        if (reduceWeaponLife) {
+            weapenItem.life--;
+            if (weapenItem.life <= 0) {
+                weapenItem.destroy()
+            }
         }
+
         // 敌人是否销毁
         enemy.underAttack(weapenItem)
     }
+
+
 
     upgrade(up = 1) {
         this.level += up
@@ -47,4 +52,7 @@ export class WeaponObject {
     attack() { }
 
     destroy() { }
+
+    randomDelay = (maxMilliseconds: number = 1000) =>
+        new Promise(resolve => setTimeout(resolve, Math.random() * maxMilliseconds));
 }

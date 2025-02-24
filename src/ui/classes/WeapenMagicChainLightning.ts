@@ -3,25 +3,29 @@ import { WeaponObject } from "./Weapen";
 import { Assets } from "pixi.js";
 import { PixiTexture } from "@src/plugins/engine";
 import { WeapenBulletItem } from "./WeapenBulletItem";
-import { WeaponMagicNormalAttackItem } from './WeaponMagicNormalAttackItem'
-
-
-export class WeaponMagicNormalAttack extends WeaponObject {
+import { WeaponMagicChainLightningItem } from "./WeapenMagicChainLightningItem";
+export class WeaponMagicChainLightning extends WeaponObject {
 
     scene: TestScene
     texture!: PixiTexture
-    name: string = "一般攻击魔法"
-    description: string = "高泛用性的快速攻击魔法，能对目标生物造成可观的伤害。";
+    name: string = "连锁闪电"
+    description: string = "引导闪电之力攻击对手，并会在相邻敌人间造成连锁伤害。";
+    chainCount = 3
+    chainRange: number
+    damage: number = 200
+
     constructor(scene: TestScene) {
         super(scene);
         this.scene = scene
-        this.frequency = 1
-        this.damage = 200
-        this.knockback = scene.unitLength(20)
-        this.speed = scene.unitLength(40)
-        this.range = scene.unitLength(800)
-        this.size = scene.unitLength(10)
-        this.texture = this.scene.allAssets["weapon-magic-general-attack"] as PixiTexture;
+        this.frequency = 1 / 3
+        this.knockback = scene.unitLength(0)
+        this.speed = scene.unitLength(0)
+        this.range = scene.unitLength(600)
+        this.size = scene.unitLength(14)
+        this.chainRange = this.range
+
+
+        this.texture = this.scene.allAssets["weapon-magic-chain-lightning"] as PixiTexture;
     }
 
     async attack() {
@@ -29,12 +33,14 @@ export class WeaponMagicNormalAttack extends WeaponObject {
         await this.randomDelay()
 
         setInterval(async () => {
+
             const targetEnemy = this.scene.findClosestEnemy({ distanceLimit: this.range })
             if (!targetEnemy) {
+                // console.log('weapon-magic-chain-lightning no target')
                 return
             }
 
-            const bullet = new WeaponMagicNormalAttackItem({
+            const weaponItem = new WeaponMagicChainLightningItem({
                 scene: this.scene,
                 targetEnemy: targetEnemy,
                 speed: this.speed,
@@ -44,6 +50,10 @@ export class WeaponMagicNormalAttack extends WeaponObject {
                 life: this.life,
                 damage: this.damage,
                 knockback: this.knockback,
+                refPosition: this.scene.player.shape,
+                chainCount: this.chainCount,
+                chainRange: this.chainRange,
+                chainedEnemies: [targetEnemy.id]
             })
 
 

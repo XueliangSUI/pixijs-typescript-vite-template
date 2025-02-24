@@ -6,6 +6,7 @@ import { WeaponObject } from "./Weapen";
 import { WeapenBullet } from "./WeapenBullet";
 import { Container, Sprite, Texture } from "pixi.js";
 import { WeaponMagicNormalAttack } from "./WeaponMagicNormalAttack";
+import { WeaponMagicChainLightning } from "./WeapenMagicChainLightning";
 
 export class PlayerObject {
     speed: number;
@@ -14,7 +15,7 @@ export class PlayerObject {
     shape: PixiSprite | PixiGraphics;
     weapons: WeaponObject[] = [];
     scene: TestScene
-    directionArrow: Sprite | Container
+    directionArrow!: Sprite | Container
     expAbsorbRange: number = 0
     exp: number = 0
     lv: number = 1
@@ -36,33 +37,15 @@ export class PlayerObject {
         this.shape.position.y = Manager.height / 2;
 
         // 添加方向箭头
-        const arrowContainer = new Container()
-        const arrow = new Sprite(scene.allAssets["direction-arrow"] as Texture)
-        arrow.anchor.set(0.5, 0.5)
-        arrow.width = 20
-        arrow.height = 20
-        // this.scene.addChild(arrow)
-        arrow.position.set(this.shape.position.x, this.shape.position.y)
-        arrowContainer.addChild(arrow)
-        // arrow初始位于player的正上方2个半径的位置
-        arrow.position.set(0, -radius * 2)
-        // arrowContainer底边中心设为中点  
-        arrowContainer.pivot.set(0.5, 1)
-        // arrowContainer位置设为player的位置
-        arrowContainer.position.set(this.shape.position.x, this.shape.position.y)
-        // arrowContainer旋转角度设为0  
-        arrowContainer.angle = 0
-        this.directionArrow = arrowContainer
-        this.scene.addChild(arrowContainer)
+        this.addDirectionArrow(scene, radius)
 
 
         const weapenBullet = new WeapenBullet(this.scene)
         this.addWeapen(weapenBullet)
         const weaponMagicNormalAttack = new WeaponMagicNormalAttack(this.scene)
         this.addWeapen(weaponMagicNormalAttack)
-
-        // this.shape.width = 50;
-        // this.shape.height = 50;
+        const weaponMagicChainLightning = new WeaponMagicChainLightning(this.scene)
+        this.addWeapen(weaponMagicChainLightning)
 
     }
 
@@ -91,6 +74,27 @@ export class PlayerObject {
                 this.shape.alpha = 1; // 确保动画结束后透明度恢复为 1
             }
         });
+    }
+
+    addDirectionArrow(scene: TestScene, radius: number) {
+        const arrowContainer = new Container()
+        const arrow = new Sprite(scene.allAssets["direction-arrow"] as Texture)
+        arrow.anchor.set(0.5, 0.5)
+        arrow.width = 20
+        arrow.height = 20
+
+        arrow.position.set(this.shape.position.x, this.shape.position.y)
+        arrowContainer.addChild(arrow)
+        // arrow初始位于player的正上方2个半径的位置
+        arrow.position.set(0, -radius * 2)
+        // arrowContainer底边中心设为中点  
+        arrowContainer.pivot.set(0.5, 1)
+        // arrowContainer位置设为player的位置
+        arrowContainer.position.set(this.shape.position.x, this.shape.position.y)
+        // arrowContainer旋转角度设为0  
+        arrowContainer.angle = 0
+        this.directionArrow = arrowContainer
+        this.scene.addChild(arrowContainer)
     }
 
     addWeapen(weapen: WeaponObject) {
