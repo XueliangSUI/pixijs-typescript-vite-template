@@ -5,6 +5,7 @@ import { IWeaponItem } from "@ui/interfaces/IWeaponItem";
 import gsap from "gsap";
 import { AnimatedSprite, Texture } from "pixi.js";
 import { Exp } from "./Exp";
+import { Prop } from "./Prop"
 
 export class EnemyObject {
     baseLength = Math.min(Manager.width, Manager.height) / 1000
@@ -57,7 +58,8 @@ export class EnemyObject {
                         console.log("销毁", this.shape);
                         const position = { x: this.shape.position.x, y: this.shape.position.y }
                         this.shape.destroy({ children: true, texture: true });
-                        this.dropExp(position)
+                        this.enemySlain(position)
+
                     } else {
                         console.log("this.shape不存在");
                     }
@@ -79,8 +81,18 @@ export class EnemyObject {
         this.shape.position.x += Math.cos(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
         this.shape.position.y += Math.sin(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
     }
+    enemySlain(position: { x: number, y: number }) {
+        // 95%概率掉落经验，5%概率掉落心
+        Math.random() > 0.05 ?
+            this.dropExp(position) :
+            this.dropHeart(position)
+    }
 
     dropExp(position: { x: number, y: number }) {
-        new Exp(this.scene, position, 1)
+        new Prop(this.scene, position, "exp1")
+    }
+
+    dropHeart(position: { x: number, y: number }) {
+        new Prop(this.scene, position, "heart")
     }
 }

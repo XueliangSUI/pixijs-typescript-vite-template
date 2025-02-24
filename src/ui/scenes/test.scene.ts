@@ -13,6 +13,7 @@ import { WeaponObject } from "@ui/classes/Weapen"
 import { WeapenBullet } from "@ui/classes/WeapenBullet"
 import { ExpBar } from '../classes/ExpBar';
 import { Exp } from '../classes/Exp';
+import { Prop } from '../classes/Prop';
 
 
 export class TestScene extends PixiContainer implements SceneInterface {
@@ -20,6 +21,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
     // gameBgImg: PixiSprite;
     enemiesList: EnemyObject[] = [];
     expList: Exp[] = [];
+    propList: Prop[] = [];
     bg: PixiContainer;
     player!: PlayerObject;
     bloodBar: BloodBar;
@@ -118,8 +120,8 @@ export class TestScene extends PixiContainer implements SceneInterface {
             "weapon-magic-general-defense": "images/weapon-magic-general-defense.png",
             "weapon-magic-chain-lightning": "images/weapon-magic-chain-lightning.png",
             "direction-arrow": "images/direction-arrow.png",
-            "exp": "images/exp.png"
-
+            "exp": "images/exp.png",
+            "heart": "images/heart.png",
         }
         this.allAssets = {}
         for (const key in allAssets) {
@@ -192,6 +194,8 @@ export class TestScene extends PixiContainer implements SceneInterface {
                     }
                 }
             })
+            // 对心和玩家的碰撞检测
+
         })
 
     }

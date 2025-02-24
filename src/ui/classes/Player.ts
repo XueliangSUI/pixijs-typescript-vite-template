@@ -117,4 +117,8 @@ export class PlayerObject {
             this.scene.expBar.update(this.exp, this.lv * 100)
         }
     }
+
+    recoverHp(hp: number) {
+        this.setHp(Math.max(this.hp + hp, this.maxHp))
+    }
 }
