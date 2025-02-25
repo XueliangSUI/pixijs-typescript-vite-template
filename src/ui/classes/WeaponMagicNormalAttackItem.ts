@@ -6,6 +6,7 @@ import { PixiSprite, PixiTexture } from "@src/plugins/engine";
 import { WeaponObject } from "./Weapen";
 import { INewWeaponBulletItem } from "@ui/interfaces/INewWeaponBulletItem";
 import { IWeaponItem } from "@ui/interfaces/IWeaponItem";
+import { gsap } from 'gsap'
 
 
 
@@ -16,6 +17,7 @@ export class WeaponMagicNormalAttackItem implements IWeaponItem {
     shape: PixiSprite
     speed: number
     texture: PixiTexture
+    trailTexture: PixiTexture
     range: number
     life: number
     damage: number
@@ -28,8 +30,9 @@ export class WeaponMagicNormalAttackItem implements IWeaponItem {
     y2: number
     r2: number
     constructor(props: INewWeaponBulletItem) {
-        const { scene, targetEnemy, speed, texture, size, range, life, damage, knockback } = props
+        const { scene, targetEnemy, speed, texture, otherTextures, size, range, life, damage, knockback } = props
         this.texture = texture
+        this.trailTexture = otherTextures![0]
         this.speed = speed
         this.scene = scene
         this.size = size
@@ -40,8 +43,8 @@ export class WeaponMagicNormalAttackItem implements IWeaponItem {
         this.targetEnemy = targetEnemy
 
         this.shape = new PixiSprite(this.texture)
-        this.shape.width = this.size * 8
-        this.shape.height = this.size * 1.5
+        this.shape.width = this.size * 2
+        this.shape.height = this.size * 2
         this.shape.anchor.set(0.5);
 
 
@@ -60,8 +63,8 @@ export class WeaponMagicNormalAttackItem implements IWeaponItem {
         // 为了营造跟踪的视觉效果，提供初始偏差角度
         const distance = Math.sqrt((this.x2 - this.x1) ** 2 + (this.y2 - this.y1) ** 2) / this.scene.unitLength(1);
         const expectedAngle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
-        // maxDeviationAngle不超过90度
-        const maxDeviationAngle = Math.min(distance / 1000, Math.PI / 2);
+        // maxDeviationAngle不超过90度,不小于30度
+        const maxDeviationAngle = Math.max(Math.min(distance / 1000, Math.PI / 2), Math.PI / 6);
 
         this.angle = expectedAngle + (Math.random() - 1) * maxDeviationAngle;
         this.shape.angle = this.angle * 180 / Math.PI
@@ -71,7 +74,12 @@ export class WeaponMagicNormalAttackItem implements IWeaponItem {
 
     animation = (time: any) => {
         let { x, y }: { x: number, y: number } = this.shape.position
+
+        this.createTrail()
+
         if (this.ifTargetEnemyExist()) {
+
+
 
             // 如果目标敌人还在，修正角度
             let x2 = this.targetEnemy!.shape.position.x
@@ -99,6 +107,7 @@ export class WeaponMagicNormalAttackItem implements IWeaponItem {
 
         this.shape.position.x = x;
         this.shape.position.y = y
+
 
         // 对于所有击中的敌人，按情况减血
         const collidedEnemies = this.scene.enemiesCollidedByBullet(x, this.shape.position.y, this.size)
@@ -128,5 +137,18 @@ export class WeaponMagicNormalAttackItem implements IWeaponItem {
 
     ifTargetEnemyExist() {
         return this.targetEnemy?.shape && this.targetEnemy?.shape.position && this.targetEnemy?.shape.position.x && this.targetEnemy?.shape.position.y
+    }
+
+    createTrail(position: { x: number, y: number } = this.shape.position) {
+        // 在该位置创建尾迹
+        const trail = new PixiSprite(this.trailTexture)
+        trail.width = this.size * 4
+        trail.height = this.size * 2
+        trail.anchor.set(0.5);
+        trail.position.x = position.x;
+        trail.position.y = position.y;
+        trail.angle = this.angle * 180 / Math.PI
+        this.scene.bg.addChild(trail);
+        gsap.to(trail, { alpha: 0, duration: 0.4, onComplete: () => { trail.destroy() } })
     }
 }

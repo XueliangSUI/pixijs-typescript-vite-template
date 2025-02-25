@@ -8,6 +8,7 @@ export interface INewWeaponBulletItem {
     targetEnemy?: EnemyObject
     speed: number
     texture: PixiTexture
+    otherTextures?: PixiTexture[]
     range: number
     life: number
     damage: number

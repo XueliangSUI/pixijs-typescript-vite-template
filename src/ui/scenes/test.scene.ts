@@ -116,6 +116,7 @@ export class TestScene extends PixiContainer implements SceneInterface {
             "test-slime": ["images/test-slime-1.png", "images/test-slime-2.png"],
             "enemy-mushroom": ["images/enemy-mushroom-1.png", "images/enemy-mushroom-2.png"],
             "weapen-bullet": "images/weapen-bullet.png",
+            "weapon-magic-general-attack-arrow": "images/weapon-magic-general-attack-arrow.png",
             "weapon-magic-general-attack": "images/weapon-magic-general-attack.png",
             "weapon-magic-general-defense": "images/weapon-magic-general-defense.png",
             "weapon-magic-chain-lightning": "images/weapon-magic-chain-lightning.png",
