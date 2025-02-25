@@ -110,7 +110,7 @@ export class WeaponMagicNormalAttackItem implements IWeaponItem {
 
 
         // 对于所有击中的敌人，按情况减血
-        const collidedEnemies = this.scene.enemiesCollidedByBullet(x, this.shape.position.y, this.size)
+        const collidedEnemies = this.scene.enemiesCollidedByBullet(x, y, this.size)
         collidedEnemies.forEach((targetEnemy) => {
             WeaponObject.collideEnemy(this, targetEnemy)
         })

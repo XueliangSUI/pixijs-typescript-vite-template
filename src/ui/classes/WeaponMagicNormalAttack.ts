@@ -1,8 +1,6 @@
 import { TestScene } from "@ui/scenes/test.scene";
 import { WeaponObject } from "./Weapen";
-import { Assets } from "pixi.js";
 import { PixiTexture } from "@src/plugins/engine";
-import { WeapenBulletItem } from "./WeapenBulletItem";
 import { WeaponMagicNormalAttackItem } from './WeaponMagicNormalAttackItem'
 
 

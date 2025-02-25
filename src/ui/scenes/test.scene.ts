@@ -214,11 +214,90 @@ export class TestScene extends PixiContainer implements SceneInterface {
         return (positionObj.x1 - positionObj.x2) ** 2 + (positionObj.y1 - positionObj.y2) ** 2 <= (positionObj.r1 + positionObj.r2) ** 2
     }
 
+    collisionDetectionCircleAndRect = (circle: { x: number, y: number, r: number }, rect: { x: number, y: number, width: number, height: number, angle: number }) => {
+        // 计算旋转后矩形的顶点坐标
+        function getRotatedRectangleVertices(rect: { x: number, y: number, width: number, height: number, angle: number }) {
+            const cos = Math.cos(rect.angle);
+            const sin = Math.sin(rect.angle);
+            const halfWidth = rect.width / 2;
+            const halfHeight = rect.height / 2;
+
+            return [
+                {
+                    x: rect.x + cos * (-halfWidth) - sin * (-halfHeight),
+                    y: rect.y + sin * (-halfWidth) + cos * (-halfHeight)
+                },
+                {
+                    x: rect.x + cos * (halfWidth) - sin * (-halfHeight),
+                    y: rect.y + sin * (halfWidth) + cos * (-halfHeight)
+                },
+                {
+                    x: rect.x + cos * (halfWidth) - sin * (halfHeight),
+                    y: rect.y + sin * (halfWidth) + cos * (halfHeight)
+                },
+                {
+                    x: rect.x + cos * (-halfWidth) - sin * (halfHeight),
+                    y: rect.y + sin * (-halfWidth) + cos * (halfHeight)
+                }
+            ];
+        }
+
+        // 计算点到线段的最近点
+        function closestPointOnLineSegment(point: { x: number, y: number }, lineStart: { x: number, y: number }, lineEnd: { x: number, y: number }) {
+            const lineVector = { x: lineEnd.x - lineStart.x, y: lineEnd.y - lineStart.y };
+            const pointVector = { x: point.x - lineStart.x, y: point.y - lineStart.y };
+
+            const lineLengthSquared = lineVector.x * lineVector.x + lineVector.y * lineVector.y;
+            if (lineLengthSquared === 0) return lineStart;
+
+            const dotProduct = pointVector.x * lineVector.x + pointVector.y * lineVector.y;
+            let t = Math.max(0, Math.min(1, dotProduct / lineLengthSquared));
+
+            return { x: lineStart.x + t * lineVector.x, y: lineStart.y + t * lineVector.y };
+        }
+
+        // 计算圆形中心到矩形的最近点
+        function closestPointOnRectangle(circle: { x: number, y: number }, rectVertices: { x: number, y: number }[]) {
+            let closestPoint;
+            let minDistance = Infinity;
+
+            for (let i = 0; i < 4; i++) {
+                const lineStart = rectVertices[i];
+                const lineEnd = rectVertices[(i + 1) % 4];
+                const point = closestPointOnLineSegment(circle, lineStart, lineEnd);
+                const distance = Math.sqrt((point.x - circle.x) * (point.x - circle.x) + (point.y - circle.y) * (point.y - circle.y));
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestPoint = point;
+                }
+            }
+
+            return closestPoint;
+        }
+
+        const rectVertices = getRotatedRectangleVertices(rect);
+        const closestPoint = closestPointOnRectangle(circle, rectVertices);
+
+        const distance = Math.sqrt((closestPoint!.x - circle.x) * (closestPoint!.x - circle.x) + (closestPoint!.y - circle.y) * (closestPoint!.y - circle.y));
+        return distance < circle.r;
+    };
+
+
+
     // 检测子弹碰到任何敌人
     enemiesCollidedByBullet = (x: number, y: number, radius: number): EnemyObject[] => {
         const enemies = this.enemiesList.filter((enemy: EnemyObject) => {
             if (!enemy.shape) return false
             return this.collisionDetectionCirclePosition({ x1: x, y1: y, x2: enemy.shape.position.x, y2: enemy.shape.position.y, r1: radius, r2: enemy.shape.width / 2 })
+        })
+        return enemies
+    }
+
+    enemiesCollidedByRect = (position: { x: number, y: number }, width: number, height: number, angle: number): EnemyObject[] => {
+        const enemies = this.enemiesList.filter((enemy: EnemyObject) => {
+            if (!enemy.shape) return false
+            this.collisionDetectionCircleAndRect({ x: enemy.shape.position.x, y: enemy.shape.position.y, r: enemy.shape.width / 2 }, { x: position.x, y: position.y, width, height, angle })
         })
         return enemies
     }
@@ -234,6 +313,11 @@ export class TestScene extends PixiContainer implements SceneInterface {
 
     ifPaused = () => {
         return this.isPaused
+    }
+
+    doSetInterval(func: Function, time: number) {
+        func()
+        return setInterval(func, time)
     }
 
     enemiesMove = (scene: TestScene) => {

@@ -7,6 +7,7 @@ import { WeapenBullet } from "./WeapenBullet";
 import { Container, Sprite, Texture } from "pixi.js";
 import { WeaponMagicNormalAttack } from "./WeaponMagicNormalAttack";
 import { WeaponMagicChainLightning } from "./WeapenMagicChainLightning";
+import { WeaponMagicGeneralDefense } from "./WeaponMagicGeneralDefense"
 
 export class PlayerObject {
     speed: number;
@@ -40,12 +41,15 @@ export class PlayerObject {
         this.addDirectionArrow(scene, radius)
 
 
-        const weapenBullet = new WeapenBullet(this.scene)
-        this.addWeapen(weapenBullet)
-        const weaponMagicNormalAttack = new WeaponMagicNormalAttack(this.scene)
-        this.addWeapen(weaponMagicNormalAttack)
-        const weaponMagicChainLightning = new WeaponMagicChainLightning(this.scene)
-        this.addWeapen(weaponMagicChainLightning)
+        // const weapenBullet = new WeapenBullet(this.scene)
+        // this.addWeapon(weapenBullet)
+        // const weaponMagicNormalAttack = new WeaponMagicNormalAttack(this.scene)
+        // this.addWeapon(weaponMagicNormalAttack)
+        // const weaponMagicChainLightning = new WeaponMagicChainLightning(this.scene)
+        // this.addWeapon(weaponMagicChainLightning)
+        const weaponMagicGeneralDefense = new WeaponMagicGeneralDefense(this.scene)
+        this.addWeapon(weaponMagicGeneralDefense)
+
 
     }
 
@@ -97,9 +101,9 @@ export class PlayerObject {
         this.scene.addChild(arrowContainer)
     }
 
-    addWeapen(weapen: WeaponObject) {
-        this.weapons.push(weapen)
-        weapen.attack()
+    addWeapon(weapon: WeaponObject) {
+        this.weapons.push(weapon)
+        weapon.attack()
 
     }
 
