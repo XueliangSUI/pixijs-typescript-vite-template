@@ -30,7 +30,8 @@ export class WeaponObject {
 
 
     // 碰撞敌人
-    static collideEnemy(weapenItem: IWeaponItem, enemy: EnemyObject, reduceWeaponLife = true) {
+    static collideEnemy(params: { weapenItem: IWeaponItem, enemy: EnemyObject, reduceWeaponLife?: boolean, }) {
+        const { weapenItem, enemy, reduceWeaponLife = true } = params
         // 子弹是否继续存在
         if (reduceWeaponLife) {
             weapenItem.life--;
@@ -40,7 +41,7 @@ export class WeaponObject {
         }
 
         // 敌人是否销毁
-        enemy.underAttack(weapenItem)
+        enemy.underAttack(weapenItem, true)
     }
 
 

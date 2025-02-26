@@ -72,7 +72,7 @@ export class WeapenBulletItem implements IWeaponItem {
         // 对于所有击中的敌人，按情况减血
         const collidedEnemies = this.scene.enemiesCollidedByBullet(x, this.shape.position.y, this.size)
         collidedEnemies.forEach((targetEnemy) => {
-            WeaponObject.collideEnemy(this, targetEnemy)
+            WeaponObject.collideEnemy({ weapenItem: this, enemy: targetEnemy })
         })
         //   如果超出范围
         const bulletMoveDistance = Math.sqrt((x - this.x1) ** 2 + (y - this.y1) ** 2);
@@ -88,7 +88,7 @@ export class WeapenBulletItem implements IWeaponItem {
             try {
                 this.shape.parent?.removeChild(this.shape);
             } catch (e) {
-                console.error("WeapenBulletItem destroy",e)
+                console.error("WeapenBulletItem destroy", e)
             }
         }
         // 移除动画

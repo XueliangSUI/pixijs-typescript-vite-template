@@ -68,9 +68,13 @@ export class EnemyObject {
         }
     }
 
-    underAttack(weapenItem: IWeaponItem) {
+    underAttack(weapenItem: IWeaponItem, beKnockedBackByPlayer = false) {
         // console.log('damage', weapenItem.damage, "this.hp", this.hp)
-        this.beKnockedBack(weapenItem)
+        if (beKnockedBackByPlayer) {
+            this.beKnockedBackByPlayer(weapenItem.knockback)
+        } else {
+            this.beKnockedBack(weapenItem)
+        }
         this.hp -= weapenItem.damage
         if (this.hp <= 0) {
             this.destroy()
@@ -81,6 +85,14 @@ export class EnemyObject {
         this.shape.position.x += Math.cos(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
         this.shape.position.y += Math.sin(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
     }
+
+    beKnockedBackByPlayer(knockback: number) {
+        // 计算enemy和player的角度
+        const angle = Math.atan2(this.shape.position.y - this.scene.player.shape.position.y, this.shape.position.x - this.scene.player.shape.position.x)
+        this.shape.position.x += Math.cos(angle) * knockback
+        this.shape.position.y += Math.sin(angle) * knockback
+    }
+
     enemySlain(position: { x: number, y: number }) {
         // 95%概率掉落经验，5%概率掉落心
         Math.random() > 0.05 ?

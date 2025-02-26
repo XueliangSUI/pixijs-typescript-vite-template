@@ -60,7 +60,7 @@ export class WeaponMagicGeneralDefenseItem implements IWeaponItem {
             duration: 0.5,
             alpha: 1,
             x: radius,
-            width: this.size * 1.5,
+            width: this.size,
             height: this.size,
         })
         gsap.to(this.shape, {
@@ -82,20 +82,18 @@ export class WeaponMagicGeneralDefenseItem implements IWeaponItem {
         this.shapeContainer.angle += this.speed * time.deltaTime
         this.shapeContainer.position.x = this.scene.player.shape.position.x
         this.shapeContainer.position.y = this.scene.player.shape.position.y;
+        const targetPos = new Point()
+        this.shape.toLocal(new Point(0, 0), this.scene.bg, targetPos)
 
-        // const absolutePosition = this.scene.getSpriteScreenPosition(this.shape)
         // 判断击中敌人
-        // const collidedEnemies = this.scene.enemiesCollidedByBullet(
-        //     this.shape.getGlobalPosition().x,
-        //     this.shape.getGlobalPosition().y,
-        //     this.shape.width
-        // )
+        const collidedEnemies = this.scene.enemiesCollidedByBulletGlobal(
+            this.shape.getGlobalPosition(),
+            this.shape.width / 2,
+        )
 
-        // console.log("this.shape.position", this.shape.position);
-        // console.log("this.shapeContainer.position", this.shapeContainer.position);
-        // collidedEnemies.forEach(targetEnemy => {
-        //     WeaponObject.collideEnemy(this, targetEnemy, false)
-        // })
+        collidedEnemies.forEach(targetEnemy => {
+            WeaponObject.collideEnemy({ weapenItem: this, enemy: targetEnemy, reduceWeaponLife: false })
+        })
     }
 
     destroy() {

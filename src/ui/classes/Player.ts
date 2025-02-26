@@ -82,10 +82,11 @@ export class PlayerObject {
 
     addDirectionArrow(scene: TestScene, radius: number) {
         const arrowContainer = new Container()
+        const size = this.scene.unitLength(40)
         const arrow = new Sprite(scene.allAssets["direction-arrow"] as Texture)
         arrow.anchor.set(0.5, 0.5)
-        arrow.width = 20
-        arrow.height = 20
+        arrow.width = size
+        arrow.height = size * 0.6
 
         arrow.position.set(this.shape.position.x, this.shape.position.y)
         arrowContainer.addChild(arrow)

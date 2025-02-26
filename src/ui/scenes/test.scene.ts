@@ -283,8 +283,6 @@ export class TestScene extends PixiContainer implements SceneInterface {
         return distance < circle.r;
     };
 
-
-
     // 检测子弹碰到任何敌人
     enemiesCollidedByBullet = (x: number, y: number, radius: number): EnemyObject[] => {
         const enemies = this.enemiesList.filter((enemy: EnemyObject) => {
@@ -292,6 +290,51 @@ export class TestScene extends PixiContainer implements SceneInterface {
             return this.collisionDetectionCirclePosition({ x1: x, y1: y, x2: enemy.shape.position.x, y2: enemy.shape.position.y, r1: radius, r2: enemy.shape.width / 2 })
         })
         return enemies
+    }
+
+    // 基于屏幕位置的圆形碰撞检测
+    enemiesCollidedByBulletGlobal = (position: { x: number, y: number }, radius: number): EnemyObject[] => {
+        const enemies = this.enemiesList.filter((enemy: EnemyObject) => {
+            if (!enemy.shape) return false
+            const enemyGlobalPosition = enemy.shape.getGlobalPosition()
+            return this.collisionDetectionCirclePosition({ x1: position.x, y1: position.y, x2: enemyGlobalPosition.x, y2: enemyGlobalPosition.y, r1: radius, r2: enemy.shape.width / 2 })
+        })
+        return enemies
+    }
+
+    enemiesCollidedByLineGlobal = (linePosition: { x: number, y: number }, lineLength: number, lineRotation: number): EnemyObject[] => {
+        const enemies = this.enemiesList.filter((enemy: EnemyObject) => {
+            if (!enemy.shape) return false
+            return this.isCircleLineCollision(enemy.shape.getGlobalPosition(), linePosition, enemy.shape.width / 2, lineLength, lineRotation)
+        })
+        return enemies
+    }
+
+    isCircleLineCollision(circlePosition: { x: number, y: number }, linePosition: { x: number, y: number }, circleRadius: number, lineLength: number, lineRotation: number) {
+        // 获取圆形的圆心位置和半径
+        const circleX = circlePosition.x;
+        const circleY = circlePosition.y;
+
+        // 计算线段的两个端点位置
+        const startX = linePosition.x - + lineLength * Math.cos(lineRotation) / 2;
+        const startY = linePosition.y - + lineLength * Math.sin(lineRotation) / 2;
+        const endX = startX + lineLength * Math.cos(lineRotation) / 2;
+        const endY = startY + lineLength * Math.sin(lineRotation) / 2;
+
+        // 计算圆心到线段的最短距离
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const lengthSquared = dx * dx + dy * dy;
+        let t = ((circleX - startX) * dx + (circleY - startY) * dy) / lengthSquared;
+        t = Math.max(0, Math.min(1, t));
+
+        const closestX = startX + t * dx;
+        const closestY = startY + t * dy;
+
+        const distance = Math.sqrt((circleX - closestX) * (circleX - closestX) + (circleY - closestY) * (circleY - closestY));
+
+        // 判断是否碰撞
+        return distance <= circleRadius;
     }
 
     enemiesCollidedByRect = (position: { x: number, y: number }, width: number, height: number, angle: number): EnemyObject[] => {
@@ -420,7 +463,7 @@ const generateEmemies = (scene: TestScene) => {
 }
 
 const testGenerateEnemies = (scene: TestScene) => {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
         const enemy = new TestEnemyObject(scene);
         scene.enemiesList.push(enemy);
         enemy.shape.position.x = 0 + i * 50
