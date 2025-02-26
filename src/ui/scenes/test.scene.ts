@@ -181,17 +181,18 @@ export class TestScene extends PixiContainer implements SceneInterface {
             scene.enemiesList.forEach((enemy) => {
                 if (enemy.shape) {
                     if (this.collisionDetectionCircle(scene.player, enemy)) {
-                        enemy.destroy();
+                        enemy.beKnockedBackByPlayer()
                         scene.player.minusHp(enemy.atk);
                         // 输出所有scene.bg的子元素
                     }
                 }
             })
+
             // 对经验球和玩家的碰撞检测
-            scene.expList.forEach((exp) => {
-                if (exp.shape) {
-                    if (this.collisionDetectionCirclePosition({ x1: this.player.shape.position.x, y1: this.player.shape.position.y, x2: exp.shape.position.x, y2: exp.shape.position.y, r1: this.player.expAbsorbRange, r2: exp.shape.width / 2 })) {
-                        exp.absorbedByPlayer()
+            scene.propList.forEach((prop) => {
+                if (prop.shape && prop.shape.position) {
+                    if (this.collisionDetectionCirclePosition({ x1: this.player.shape.position.x, y1: this.player.shape.position.y, x2: prop.shape.position.x, y2: prop.shape.position.y, r1: this.player.expAbsorbRange, r2: prop.shape.width / 2 })) {
+                        prop.absorbedByPlayer()
                     }
                 }
             })

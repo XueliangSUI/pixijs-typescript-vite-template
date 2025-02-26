@@ -8,7 +8,10 @@ export type PropType = ExpType | "heart"
 const allExpTypes = ["exp1", "exp2", "exp3", "exp4"]
 
 const expNumberFromExpType = (type: ExpType) => {
-    return type === "exp1" ? 1 : type === "exp2" ? 10 : type === "exp3" ? 100 : 1000
+    return type === "exp1" ? 1 :
+        type === "exp2" ? 10 :
+            type === "exp3" ? 100 :
+                1000
 }
 
 

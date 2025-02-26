@@ -84,7 +84,7 @@ export class WeaponMagicChainLightningItem implements IWeaponItem {
     chainAttack = () => {
         if (!this.targetEnemy) return
 
-        WeaponObject.collideEnemy(this, this.targetEnemy!, false)
+        WeaponObject.collideEnemy({ weapenItem: this, enemy: this.targetEnemy!, reduceWeaponLife: false })
         const cloestEnemy = this.scene.findClosestEnemy({
             distanceLimit: this.chainRange,
             refPosition: this.targetEnemy?.shape.position,

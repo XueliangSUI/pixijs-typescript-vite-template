@@ -41,12 +41,12 @@ export class PlayerObject {
         this.addDirectionArrow(scene, radius)
 
 
-        // const weapenBullet = new WeapenBullet(this.scene)
-        // this.addWeapon(weapenBullet)
-        // const weaponMagicNormalAttack = new WeaponMagicNormalAttack(this.scene)
-        // this.addWeapon(weaponMagicNormalAttack)
-        // const weaponMagicChainLightning = new WeaponMagicChainLightning(this.scene)
-        // this.addWeapon(weaponMagicChainLightning)
+        const weapenBullet = new WeapenBullet(this.scene)
+        this.addWeapon(weapenBullet)
+        const weaponMagicNormalAttack = new WeaponMagicNormalAttack(this.scene)
+        this.addWeapon(weaponMagicNormalAttack)
+        const weaponMagicChainLightning = new WeaponMagicChainLightning(this.scene)
+        this.addWeapon(weaponMagicChainLightning)
         const weaponMagicGeneralDefense = new WeaponMagicGeneralDefense(this.scene)
         this.addWeapon(weaponMagicGeneralDefense)
 
@@ -124,6 +124,6 @@ export class PlayerObject {
     }
 
     recoverHp(hp: number) {
-        this.setHp(Math.max(this.hp + hp, this.maxHp))
+        this.setHp(Math.min(this.hp + hp, this.maxHp))
     }
 }

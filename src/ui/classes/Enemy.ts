@@ -42,8 +42,6 @@ export class EnemyObject {
 
     destroy() {
         if (this.shape) {
-            // 从父容器中移除 shape
-
             // 从enemiesList中移除
             this.scene.enemiesList.splice(this.scene.enemiesList.indexOf(this), 1);
             // 1秒的淡出效果
@@ -51,17 +49,21 @@ export class EnemyObject {
                 alpha: 0,
                 duration: 0.2,
                 onComplete: () => {
-                    if (this.shape) {
-                        if (this.shape instanceof AnimatedSprite) {
-                            this.shape.stop()
-                        }
-                        console.log("销毁", this.shape);
-                        const position = { x: this.shape.position.x, y: this.shape.position.y }
-                        this.shape.destroy({ children: true, texture: true });
-                        this.enemySlain(position)
+                    try {
+                        if (this.shape) {
+                            if (this.shape instanceof AnimatedSprite) {
+                                this.shape.stop()
+                            }
+                            console.log("enemy destroy", this.shape);
+                            const position = { x: this.shape.position.x, y: this.shape.position.y }
+                            this.shape.destroy({ children: true, texture: true });
+                            this.enemySlain(position)
 
-                    } else {
-                        console.log("this.shape不存在");
+                        } else {
+                            console.log("this.shape不存在");
+                        }
+                    } catch (e) {
+                        console.log("enemy destroy error", e);
                     }
                 }
             })
@@ -86,7 +88,7 @@ export class EnemyObject {
         this.shape.position.y += Math.sin(weapenItem.angle!) * (weapenItem.knockback - this.knockbackResistance)
     }
 
-    beKnockedBackByPlayer(knockback: number) {
+    beKnockedBackByPlayer(knockback: number = this.scene.player.shape.width) {
         // 计算enemy和player的角度
         const angle = Math.atan2(this.shape.position.y - this.scene.player.shape.position.y, this.shape.position.x - this.scene.player.shape.position.x)
         this.shape.position.x += Math.cos(angle) * knockback
